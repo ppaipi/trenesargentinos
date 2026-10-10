@@ -1,0 +1,98 @@
+/* v5 — panel de líneas sin arribos en vivo (Urquiza, Belgrano Norte).
+   Reusa tokens de v4.css. Urquiza no tenía color propio: lo definimos acá. */
+
+:root { --linea-urquiza: #e6007e; }
+
+#programados {
+  margin-top: 1.5rem;
+}
+
+.prog-contenedor {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.prog-card {
+  background: var(--card);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  border-left: 4px solid var(--color-linea, var(--azul));
+  padding: 0.9rem 1rem;
+}
+
+.prog-cabecera {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.prog-punto {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-linea, var(--azul));
+  flex: none;
+}
+
+.prog-cabecera h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--tinta);
+}
+
+.prog-operador {
+  font-size: 0.8rem;
+  color: var(--tinta-suave);
+}
+
+.prog-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--demora);
+  background: color-mix(in srgb, var(--demora) 14%, transparent);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.prog-recorrido {
+  margin: 0.5rem 0 0.4rem;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.prog-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.prog-dia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.prog-dia-nombre {
+  color: var(--tinta-suave);
+  min-width: 8.5rem;
+}
+
+.prog-dia-detalle {
+  color: var(--tinta);
+  font-variant-numeric: tabular-nums;
+}
+
+.prog-fuente {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  color: var(--tinta-suave);
+}
+
+.prog-fuente a { color: var(--azul); }
