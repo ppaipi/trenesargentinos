@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -24,6 +26,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -111,12 +115,18 @@ fun Buscador(
                         keyboardActions = KeyboardActions(onSearch = { Estaciones.buscar(texto).firstOrNull()?.let(onElegir) }),
                     )
                 }
-                LaunchedEffect(Unit) { if (inicial == null) foco.requestFocus() }
 
                 if (texto.isNotBlank()) {
                     ListaEstaciones(Estaciones.buscar(texto).take(60).map { it to Estaciones.lineas(it) }, onElegir)
                     return@Column
                 }
+                FilaNavegacion(
+                    vista = vista,
+                    puedeVolver = pila.size > 1,
+                    onVolver = { pila.removeAt(pila.lastIndex) },
+                    onRamal = { pila[pila.lastIndex] = Vista.EnRuta(it) },
+                    onLineas = { ir(Vista.Lineas) },
+                )
                 when (vista) {
                     Vista.Lineas -> Chips(LINEAS_PRINCIPALES, { it }, { colorLinea(it) }) { ir(ramalesOEstaciones(it)) }
                     is Vista.Ramales -> Chips(Estaciones.ramalesDeLinea(vista.linea), { it }, { colorLinea(vista.linea) }) {
@@ -126,12 +136,6 @@ fun Buscador(
                         ir(Vista.EnRuta(it))
                     }
                     is Vista.EnRuta -> {
-                        Text(
-                            "${vista.ruta.linea} · ${vista.ruta.ramal}",
-                            Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
                         ListaEstaciones(Estaciones.deRuta(vista.ruta).filter { it.id != otra?.id }.map { it to "" }, onElegir)
                     }
                     is Vista.Cercanas -> {
@@ -146,6 +150,36 @@ fun Buscador(
                 }
             }
         }
+    }
+}
+
+/**
+ * Fila fija arriba de la lista: "← Volver", los ramales de la línea actual
+ * (para cambiar de ramal con un toque) y "Otras líneas".
+ */
+@Composable
+private fun FilaNavegacion(vista: Vista, puedeVolver: Boolean, onVolver: () -> Unit, onRamal: (Ruta) -> Unit, onLineas: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    val ramales = (vista as? Vista.EnRuta)?.let { v -> Estaciones.ramalesDeLinea(v.ruta.linea).map { Ruta(v.ruta.linea, it) }.sortedByDescending { it == v.ruta } } ?: emptyList() // el elegido primero
+    val mostrarLineas = vista is Vista.EnRuta || vista is Vista.RamalesDe || vista is Vista.Cercanas
+    if (!puedeVolver && ramales.isEmpty() && !mostrarLineas) return
+    LazyRow(
+        Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (puedeVolver) item { FilterChip(false, onVolver, { Text("← Volver") }) }
+        if (vista is Vista.EnRuta) {
+            items(ramales) { r ->
+                val elegido = r == vista.ruta
+                FilterChip(
+                    elegido, { onRamal(r) }, { Text(r.ramal) },
+                    leadingIcon = { Box(Modifier.size(10.dp).background(colorLinea(r.linea) ?: cs.primary, CircleShape)) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = cs.primary, selectedLabelColor = cs.onPrimary),
+                )
+            }
+        }
+        if (mostrarLineas) item { FilterChip(false, onLineas, { Text("Otras líneas") }) }
     }
 }
 

@@ -96,12 +96,10 @@ fun PanelAvisos(grupos: List<GrupoAvisos>, lineaPrimero: String?, onCerrar: () -
 fun SeccionProgramados(tinta: Color) {
     var abierta by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
+        TituloSeccion(
             "Otras líneas (horario programado) ${if (abierta) "▾" else "▸"}",
+            tinta,
             Modifier.clickable { abierta = !abierta }.padding(vertical = 6.dp),
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleMedium,
-            color = tinta,
         )
         if (abierta) {
             Text(

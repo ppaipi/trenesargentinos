@@ -52,6 +52,8 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     var conexion by mutableStateOf(Conexion.CONECTANDO); private set
     var online by mutableStateOf(true); private set
     var oscuro by mutableStateOf(almacen.temaOscuro); private set
+    var meme by mutableStateOf(almacen.meme); private set
+    var intersticial by mutableStateOf<Int?>(null) // segundos del anuncio a pantalla completa
 
     var origen by mutableStateOf<Estacion?>(null); private set
     var destino by mutableStateOf<Estacion?>(null); private set
@@ -181,7 +183,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         if (o != null && d != null && Estaciones.rutaCompartida(o, d) != null) {
             origen = o
             destino = d
-            buscar()
+            buscar(auto = true)
         }
     }
 
@@ -265,10 +267,12 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         sondeo?.cancel()
     }
 
-    fun buscar() {
+    fun buscar(auto: Boolean = false) {
         val o = origen ?: return
         val d = destino ?: return
         detener()
+        // Cada búsqueda a mano trae su anuncio de 3 segundos (salvo la automática al abrir).
+        if (meme && !auto) intersticial = 3
         val v = Viaje(o.id, d.id)
         almacen.agregarReciente(v)
         refrescarViajes()
@@ -480,6 +484,12 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     }
 
     /* ---------- Varios ---------- */
+
+    fun alternarMeme() {
+        meme = !meme
+        almacen.meme = meme
+        if (meme) intersticial = 5
+    }
 
     fun alternarTema() {
         oscuro = !oscuro

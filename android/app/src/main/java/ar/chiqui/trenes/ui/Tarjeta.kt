@@ -2,6 +2,10 @@ package ar.chiqui.trenes.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,12 +41,29 @@ import ar.chiqui.trenes.datos.Estacion
 import ar.chiqui.trenes.datos.Tren
 
 @Composable
-fun Etiqueta(texto: String, fondo: Color, tinta: Color) {
+fun Etiqueta(texto: String, fondo: Color, tinta: Color, punto: Boolean = false) {
+    Row(
+        Modifier.clip(RoundedCornerShape(50)).background(fondo).padding(horizontal = 9.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (punto) {
+            Box(Modifier.size(6.dp).clip(RoundedCornerShape(50)).background(tinta))
+            Spacer(Modifier.width(5.dp))
+        }
+        Text(texto.uppercase(), color = tinta, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+    }
+}
+
+/** Botón chico celeste como .boton-secundario de la web. */
+@Composable
+fun BotonSecundario(texto: String, activo: Boolean = false, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
     Text(
         texto,
-        Modifier.clip(RoundedCornerShape(50)).background(fondo).padding(horizontal = 10.dp, vertical = 3.dp),
-        color = tinta,
-        style = MaterialTheme.typography.labelMedium,
+        Modifier.clip(RoundedCornerShape(8.dp)).background(if (activo) cs.primary else cs.primaryContainer)
+            .clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 8.dp),
+        color = if (activo) cs.onPrimary else cs.primary,
+        fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
     )
 }
@@ -67,77 +87,97 @@ fun Tarjeta(
     val cs = MaterialTheme.colorScheme
     val c = cuentaRegresiva(t.referencia, ahora)
     val urgente = !c.ya && t.referencia - ahora in 0..120000
-    Card(
-        colors = CardDefaults.cardColors(containerColor = cs.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        border = if (proximo) BorderStroke(2.dp, color) else null,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(Modifier.height(IntrinsicSize.Min)) {
-            Box(Modifier.width(5.dp).fillMaxHeight().background(color))
-            Column(Modifier.padding(14.dp)) {
-                Row(verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1f)) {
-                        Text(t.ramal, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-                        val sentido = if (t.hacia != null && t.hacia != t.estacionDestino) "hacia ${t.hacia} · " else ""
+    Box {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = cs.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            shape = RoundedCornerShape(12.dp),
+            border = if (proximo) BorderStroke(2.dp, color) else null,
+            modifier = Modifier.fillMaxWidth().padding(top = if (proximo) 8.dp else 0.dp),
+        ) {
+            Row(Modifier.height(IntrinsicSize.Min)) {
+                Box(Modifier.width(5.dp).fillMaxHeight().background(color))
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp)) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        Column(Modifier.weight(1f).padding(end = 8.dp)) {
+                            Text(t.ramal, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = cs.primary)
+                            val sentido = if (t.hacia != null && t.hacia != t.estacionDestino) "hacia ${t.hacia} · " else ""
+                            Text(
+                                "${linea?.let { "$it · " } ?: ""}$sentido${if (t.esCabecera) "sale de" else "llega a"} ${t.estacionOrigen}",
+                                fontSize = 13.sp,
+                                color = cs.onSurfaceVariant,
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                c.num,
+                                fontFamily = Mono,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 30.sp,
+                                letterSpacing = (-0.5).sp,
+                                color = when {
+                                    c.ya -> ColorOk
+                                    urgente -> ColorAcento
+                                    else -> cs.primary
+                                },
+                            )
+                            Text(c.uni.uppercase(), fontSize = 10.5.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp, color = cs.onSurfaceVariant)
+                        }
+                    }
+
+                    HorizontalDivider(Modifier.padding(vertical = 10.dp), color = cs.outline)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        ColHora(hora(t.referencia), t.estacionOrigen, Modifier.weight(1f))
                         Text(
-                            "${linea?.let { "$it · " } ?: ""}$sentido${if (t.esCabecera) "sale de" else "llega a"} ${t.estacionOrigen}",
-                            style = MaterialTheme.typography.bodySmall,
+                            if (t.duracionMin != null) "${duracion(t.duracionMin)} →" else "→",
                             color = cs.onSurfaceVariant,
+                            fontSize = 13.sp,
+                        )
+                        ColHora(hora(t.llegadaDestino), t.estacionDestino, Modifier.weight(1f), TextAlign.End)
+                    }
+
+                    FlowRow(
+                        Modifier.padding(top = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        if (t.enVivo) Etiqueta("En vivo", ColorOk.copy(alpha = 0.12f), ColorOk, punto = true)
+                        else Etiqueta("Programado", cs.secondaryContainer, cs.onSurfaceVariant)
+                        val dm = t.demoraMin
+                        if (dm != null && dm >= 2) {
+                            if (dm >= 10) Etiqueta("Demora +$dm min", ColorGrave, Color.White)
+                            else Etiqueta("Demora +$dm min", ColorDemora.copy(alpha = 0.13f), ColorDemora)
+                        } else if (dm != null && t.enVivo) {
+                            Etiqueta("A horario", cs.secondaryContainer, cs.onSurfaceVariant)
+                        }
+                        t.anden?.let { Etiqueta("Andén $it", cs.primaryContainer, cs.primary) }
+                    }
+
+                    Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        BotonSecundario(if (avisoActivo) "Aviso activo" else "Avisame", activo = avisoActivo, onClick = onAvisar)
+                        if (t.ubicacion != null) {
+                            BotonSecundario(if (mapaAbierto) "Ocultar" else "Ver mapa") { mapaAbierto = !mapaAbierto }
+                        }
+                    }
+                    if (mapaAbierto && t.ubicacion != null) {
+                        MapaTren(
+                            t, origen, destino, color, oscuro, ahora,
+                            Modifier.padding(top = 12.dp).fillMaxWidth().height(280.dp).clip(RoundedCornerShape(10.dp)),
                         )
                     }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            c.num,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 26.sp,
-                            color = when {
-                                c.ya -> ColorOk
-                                urgente -> ColorAcento
-                                else -> cs.primary
-                            },
-                        )
-                        Text(c.uni, style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant, fontFamily = FontFamily.Monospace)
-                    }
-                }
-
-                Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    ColHora(hora(t.referencia), t.estacionOrigen, Modifier.weight(1f))
-                    Text(
-                        if (t.duracionMin != null) "${duracion(t.duracionMin)} →" else "→",
-                        color = cs.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    ColHora(hora(t.llegadaDestino), t.estacionDestino, Modifier.weight(1f), TextAlign.End)
-                }
-
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (t.enVivo) Etiqueta("En vivo", ColorOk.copy(alpha = 0.15f), ColorOk)
-                    else Etiqueta("Programado", cs.surfaceVariant, cs.onSurfaceVariant)
-                    val dm = t.demoraMin
-                    if (dm != null && dm >= 2) {
-                        val col = if (dm >= 10) ColorGrave else ColorDemora
-                        Etiqueta("Demora +$dm min", col.copy(alpha = 0.15f), col)
-                    } else if (dm != null && t.enVivo) {
-                        Etiqueta("A horario", cs.surfaceVariant, cs.onSurfaceVariant)
-                    }
-                    t.anden?.let { Etiqueta("Andén $it", cs.primaryContainer, cs.onPrimaryContainer) }
-                }
-
-                Row(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onAvisar) { Text(if (avisoActivo) "Aviso activo" else "Avisame") }
-                    if (t.ubicacion != null) {
-                        OutlinedButton(onClick = { mapaAbierto = !mapaAbierto }) { Text(if (mapaAbierto) "Ocultar" else "Ver mapa") }
-                    }
-                }
-                if (mapaAbierto && t.ubicacion != null) {
-                    MapaTren(
-                        t, origen, destino, color, oscuro, ahora,
-                        Modifier.padding(top = 10.dp).fillMaxWidth().height(280.dp).clip(RoundedCornerShape(10.dp)),
-                    )
                 }
             }
+        }
+        if (proximo) {
+            Text(
+                "PRÓXIMO",
+                Modifier.padding(start = 18.dp).clip(RoundedCornerShape(5.dp)).background(ColorAcento)
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                color = Color.White,
+                fontSize = 10.5.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+            )
         }
     }
 }
@@ -145,7 +185,7 @@ fun Tarjeta(
 @Composable
 private fun ColHora(h: String, est: String, modifier: Modifier, align: TextAlign = TextAlign.Start) {
     Column(modifier, horizontalAlignment = if (align == TextAlign.End) Alignment.End else Alignment.Start) {
-        Text(h, fontWeight = FontWeight.Bold, fontSize = 20.sp, fontFamily = FontFamily.Monospace)
+        Text(h, fontWeight = FontWeight.Bold, fontSize = 18.sp, fontFamily = Mono)
         Text(est, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = align)
     }
 }

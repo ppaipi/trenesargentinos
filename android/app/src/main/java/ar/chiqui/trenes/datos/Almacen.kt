@@ -48,6 +48,10 @@ class Almacen(ctx: Context) {
         get() = p.getBoolean("temaOscuro", false) // claro por defecto
         set(v) = p.edit().putBoolean("temaOscuro", v).apply()
 
+    var meme: Boolean
+        get() = p.getBoolean("meme", false)
+        set(v) = p.edit().putBoolean("meme", v).apply()
+
     var avisosVistos: Set<String>
         get() = p.getStringSet("avisosVistos", emptySet()) ?: emptySet()
         set(v) = p.edit().putStringSet("avisosVistos", v.toList().takeLast(300).toSet()).apply()
