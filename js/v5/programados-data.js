@@ -29,16 +29,20 @@ export const LINEAS_PROGRAMADAS = [
     operador: "Ferrovías",
     color: "var(--linea-belgranonorte)",
     cabeceras: ["Retiro", "Villa Rosa"],
-    trayectoMin: null,
-    // Ferrovías publica el detalle solo en PDF (buscador); cabeceras no confiables
-    // entre fuentes periodísticas → no se cargan horas de primer/último.
-    horarios: null,
-    // Frecuencia aproximada del cronograma vigente desde 19/05/2026 (prensa, no oficial):
-    frecuenciaMin: { habiles: "18-20 (pico)", sabados: "~20", domingos: "~45" },
+    trayectoMin: 90, // trenes de punta a punta, según Horario N° 21
+    // Horario N° 21 (PDF oficial, vigente desde 19/05/2026). Solo trenes que hacen
+    // el recorrido completo; hay servicios parciales y nocturnos que no figuran acá.
+    horarios: {
+      habiles: { Retiro: ["04:37", "23:45"], "Villa Rosa": ["03:00", "22:37"] },
+      sabados: { Retiro: ["04:50", "23:45"], "Villa Rosa": ["03:10", "22:37"] },
+      domingos: { Retiro: ["04:55", "23:45"], "Villa Rosa": ["03:45", "22:37"] },
+    },
+    // Intervalo entre salidas desde Retiro (mediana por franja, mismo PDF):
+    frecuenciaMin: { habiles: "14-18", sabados: "20-22", domingos: "35" },
     fuente: {
-      url: "https://ferrovias.com.ar/horarios/",
+      url: "https://ferrovias.com.ar/wp-content/uploads/2026/06/Mural-H21-web-completo.pdf",
       nombre: "Ferrovías",
     },
-    vigencia: "18/05/2026",
+    vigencia: "19/05/2026",
   },
 ];

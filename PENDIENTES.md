@@ -44,10 +44,9 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
 1. Investigar si la API trae estado de ascensores/escaleras. El repo de referencia
    `alandaitch/anden` no documenta endpoints a propósito; tantear la API lo bloquea
    el clasificador. Abierto.
-0. v5: confirmar datos de horario programado. Urquiza no publica frecuencia;
-   Belgrano Norte solo tiene PDF (sin primer/último confiable) y frecuencia
-   aproximada de prensa (pico 18-20, dom ~45, desde 19/05/2026). Revisar y cargar
-   horas reales de Belgrano Norte desde el PDF oficial.
+0. v5: Urquiza sigue sin frecuencia publicada por Metrovías (solo primer/último).
+   Belgrano Norte ya cargado desde el PDF del Horario N° 21 (punta a punta,
+   frecuencia desde Retiro). Al cambiar el horario, re-parsear el PDF nuevo.
 2. App Android para Play Store vía TWA (PWABuilder/Bubblewrap): cuenta US$25,
    `/.well-known/assetlinks.json` (Jekyll ignora carpetas con punto: agregar
    `include: [".well-known"]` en `_config.yml`), prueba cerrada 12 testers × 14 días.

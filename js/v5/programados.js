@@ -59,7 +59,9 @@ function crearTarjeta(ln) {
     const horas = ln.horarios?.[clave] ?? null;
     const frec = ln.frecuenciaMin?.[clave] ?? null;
     if (horas) {
-      ul.append(filaHorario(nombre, horas));
+      const li = filaHorario(nombre, horas);
+      if (frec) li.querySelector(".prog-dia-detalle").textContent += ` · cada ${frec} min`;
+      ul.append(li);
     } else if (frec) {
       ul.append(filaHorario(nombre, `cada ${frec} min`));
     }
