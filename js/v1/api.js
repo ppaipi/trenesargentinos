@@ -52,7 +52,8 @@ export function login() {
         body: JSON.stringify({ username: user, password: pass }),
       });
       if (!res.ok) throw new ErrorApi(res.status, "No se pudo autenticar");
-      token = (await res.json()).token;
+      token = (await leerJson(res)).token;
+      if (!token) throw new ErrorApi(res.status, "No se pudo autenticar");
       return token;
     })().finally(() => {
       loginEnCurso = null;
@@ -78,7 +79,17 @@ async function get(ruta, { reintentos = 2 } = {}) {
       throw new ErrorApi(0, navigator.onLine ? "Sin respuesta del servidor" : "Sin conexión");
     }
 
-    if (res.ok) return res.json();
+    if (res.ok) {
+      try {
+        return await leerJson(res);
+      } catch (error) {
+        if (intento < reintentos) {
+          await esperar(800 * (intento + 1));
+          continue;
+        }
+        throw error;
+      }
+    }
 
     if ((res.status === 401 || res.status === 403) && intento === 0) {
       await login();
@@ -89,6 +100,18 @@ async function get(ruta, { reintentos = 2 } = {}) {
       continue;
     }
     throw new ErrorApi(res.status);
+  }
+}
+
+// Algunas veces la API (o un proxy en el medio) responde HTML con status 200:
+// res.json() tiraba "JSON.parse: unexpected character". Lo tratamos como error.
+async function leerJson(res) {
+  const texto = await res.text();
+  try {
+    return JSON.parse(texto);
+  } catch {
+    console.warn("Respuesta no JSON de", res.url, texto.slice(0, 200));
+    throw new ErrorApi(res.status, "Respuesta inválida del servidor");
   }
 }
 

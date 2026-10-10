@@ -260,7 +260,7 @@ async function consultar(programada) {
         resultDiv,
         error.status === 0
           ? `${error.message}. Reintentamos solos en unos segundos.`
-          : `El servicio de Trenes Argentinos no respondió (${error.status}).`,
+          : `El servicio de Trenes Argentinos no respondió bien (${error.message}).`,
         { texto: "Reintentar ahora", onClick: () => buscar() }
       );
     }

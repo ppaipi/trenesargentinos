@@ -50,7 +50,7 @@ export async function cargarEstaciones() {
   const [resEst, resCoords] = await Promise.all([fetch("estaciones.json"), fetch("estaciones-coords.json")]);
   if (!resEst.ok) throw new Error("Error al cargar estaciones: " + resEst.status);
   estaciones = await resEst.json();
-  const coords = resCoords.ok ? await resCoords.json() : {};
+  const coords = resCoords.ok ? await resCoords.json().catch(() => ({})) : {};
 
   porId = new Map();
   rutaIndice = new Map();
