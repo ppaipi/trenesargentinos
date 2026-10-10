@@ -96,3 +96,16 @@
 }
 
 .prog-fuente a { color: var(--azul); }
+
+/* Plegada por defecto: se abre al tocar el título. */
+.prog-plegable > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.prog-plegable > summary::-webkit-details-marker { display: none; }
+.prog-plegable > summary::after {
+  content: " ▸";
+}
+.prog-plegable[open] > summary::after {
+  content: " ▾";
+}
