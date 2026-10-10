@@ -18,8 +18,9 @@
   <title>¿Cuándo llega tu tren? · presentado por Sancord Seguros</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap">
-  <link rel="stylesheet" href="css/v1.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="css/v2.css">
+  <link rel="stylesheet" href="css/v2-avisos-mapa.css">
   <link rel="stylesheet" href="css/patrocinio.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
@@ -28,6 +29,7 @@
   <header class="cabecera">
     <div class="cabecera-fila">
       <h1>¿Cuándo llega tu tren?</h1>
+      <button id="campanaBtn" class="boton-icono campana" type="button" aria-label="Avisos del servicio" title="Avisos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="campanaBadge" class="campana-badge ocultar"></span></button>
       <button id="temaBtn" class="boton-icono" type="button" aria-label="Cambiar tema claro/oscuro" title="Tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </div>
     <p class="subtitulo">Horarios en vivo, demoras y andén de todas las líneas del AMBA.</p>
@@ -39,6 +41,8 @@
     <div id="loginStatus" role="status"><span class="spinner"></span> Conectando con Trenes Argentinos...</div>
 
     <div id="menu" hidden>
+      <section id="estadoServicio" class="estado-servicio ocultar" aria-label="Estado del servicio"></section>
+
       <section id="favoritos" class="favoritos ocultar" aria-label="Viajes guardados">
         <h2 class="titulo-seccion">Tus viajes</h2>
         <div id="favoritosLista" class="favoritos-lista"></div>
@@ -97,9 +101,15 @@
           <p id="estadoActualizacion" class="estado-actualizacion"></p>
         </div>
         <div class="resultado-acciones">
+          <button id="mapaBtn" class="boton-mapa-vivo" type="button" aria-pressed="false" title="Mapa en vivo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg><span>Mapa</span></button>
           <button id="favBtn" class="boton-icono" type="button" aria-pressed="false" title="Guardar viaje" aria-label="Guardar viaje">☆</button>
           <button id="compartirBtn" class="boton-icono" type="button" title="Compartir" aria-label="Compartir viaje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></button>
         </div>
+      </div>
+      <ul id="avisosViaje" class="avisos-lista avisos-viaje ocultar" aria-label="Avisos para este viaje"></ul>
+      <div id="mapaVivoCaja" class="mapa-vivo-caja ocultar">
+        <div id="mapaVivo" class="mapa-vivo"></div>
+        <p id="mapaVivoNota" class="mapa-vivo-nota"></p>
       </div>
       <div id="result"></div>
     </section>
@@ -110,10 +120,22 @@
     <p><a href="gps.html">Mapa en vivo</a> · <a href="index.html">Versión clásica</a></p>
   </footer>
 
+
+  <div id="panelAvisos" class="panel-avisos ocultar" role="region" aria-label="Avisos del servicio">
+    <div class="panel-avisos-caja">
+      <div class="panel-avisos-cabecera">
+        <h2>Avisos del servicio</h2>
+        <button id="cerrarAvisos" class="boton-icono" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <div id="panelAvisosLista"></div>
+      <p class="linea-nombre">Fuente: Trenes Argentinos. Se actualiza cada 5 minutos.</p>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-  <script type="module" src="js/v1/patrocinio.js"></script>
-  <script type="module" src="js/v1/app.js"></script>
+  <script type="module" src="js/v2/patrocinio.js"></script>
+  <script type="module" src="js/v2/app.js"></script>
 </body>
 </html>

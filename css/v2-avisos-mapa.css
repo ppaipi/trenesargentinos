@@ -1,0 +1,168 @@
+/* v2 — campana y panel de avisos, estado del servicio y mapa en vivo. */
+
+/* Campana de avisos */
+.campana { overflow: visible; }
+
+.campana-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--azul);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-shadow: none;
+}
+
+.campana-badge.grave { background: var(--acento); color: #fff; }
+
+.panel-avisos {
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 16px 16px;
+  background: rgba(10, 20, 40, 0.45);
+}
+
+.panel-avisos-caja {
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--card);
+  border-radius: var(--radio);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: aparecer 0.2s ease;
+}
+
+.panel-avisos-cabecera { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.panel-avisos-cabecera h2 { margin: 0; font-size: 1.1rem; }
+#panelAvisosLista { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+
+/* Avisos */
+.avisos-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+
+.aviso-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border-left: 4px solid var(--tinta-suave);
+  background: var(--suave);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.aviso-item.info { border-left-color: var(--azul); }
+.aviso-item.medio { border-left-color: var(--demora); background: rgba(180, 83, 9, 0.09); }
+.aviso-item.grave { border-left-color: var(--grave); background: rgba(185, 28, 28, 0.09); }
+
+.aviso-linea {
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-linea);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.avisos-viaje { margin-bottom: 12px; }
+.avisos-viaje .aviso-item { background: var(--card); box-shadow: 0 2px 8px rgba(16, 40, 80, 0.1); }
+
+/* Estado del servicio */
+.estado-servicio { margin: 4px 0 14px; }
+.estado-lineas { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.estado-linea {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--card);
+  color: var(--tinta);
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(16, 40, 80, 0.1);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.estado-linea .punto { width: 8px; height: 8px; border-radius: 50%; background: var(--color-linea); }
+.estado-linea[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--color-linea); }
+.estado-linea .cuenta-avisos { min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--suave); font-size: 0.7rem; line-height: 18px; text-align: center; }
+.estado-linea[data-nivel="medio"] .cuenta-avisos { background: var(--demora); color: #fff; }
+.estado-linea[data-nivel="grave"] .cuenta-avisos { background: var(--grave); color: #fff; }
+.estado-servicio .avisos-lista { margin-top: 8px; }
+
+/* Mapa en vivo */
+.boton-mapa-vivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 20px;
+  background: var(--card);
+  color: var(--azul);
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 40, 80, 0.12);
+}
+
+.boton-mapa-vivo svg { width: 18px; height: 18px; }
+.boton-mapa-vivo[aria-pressed="true"] { background: var(--azul); color: #fff; }
+
+.mapa-vivo-caja {
+  margin-bottom: 12px;
+  overflow: hidden;
+  background: var(--card);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.mapa-vivo { height: min(55vh, 380px); }
+.mapa-vivo-nota { margin: 0; padding: 8px 12px; font-size: 0.78rem; color: var(--tinta-suave); }
+
+.tren-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 5px;
+  border-radius: 14px;
+  background: var(--c);
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.tren-pin-ico { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(255, 255, 255, 0.25); font-size: 0.55rem; }
+
+.leaflet-tooltip.mapa-etiqueta {
+  padding: 2px 7px;
+  border: none;
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--tinta);
+  font-family: var(--texto);
+  font-size: 0.74rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.leaflet-tooltip.mapa-etiqueta.fuerte { font-weight: 700; }
+.leaflet-tooltip.mapa-etiqueta::before { display: none; }
+.leaflet-container { font-family: var(--texto); background: var(--suave); }
