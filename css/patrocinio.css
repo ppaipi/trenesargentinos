@@ -121,3 +121,72 @@ body[data-patrocinio] .pie { padding-bottom: 60px; }
 
 .sancord-img { max-height: 34px; max-width: 180px; object-fit: contain; display: block; }
 .sancord-anuncio .sancord-img { max-height: 40px; }
+
+/* Cartel de entrada */
+.sancord-inter {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(10, 30, 20, 0.7);
+  animation: sancord-entra 0.3s ease;
+}
+
+.sancord-inter-caja {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  padding: 28px 20px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--sancord-oro), #fff7c7);
+  border: 4px dashed var(--sancord);
+  text-align: center;
+  color: #1b2230;
+  transform: rotate(-1deg);
+}
+
+.sancord-inter-caja .sancord-logo { justify-content: center; font-size: 1.6rem; }
+.sancord-inter-caja .sancord-img { max-height: 60px; margin: 0 auto; }
+.sancord-inter-texto { margin: 14px 0; font-size: 1.05rem; font-weight: 700; }
+
+.sancord-inter-cerrar {
+  display: block;
+  margin: 14px auto 0;
+  padding: 6px 12px;
+  background: transparent;
+  color: #5b5b5b;
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
+
+.sancord-inter-cerrar:disabled { cursor: wait; opacity: 0.7; text-decoration: none; }
+
+/* Banner fijo abajo */
+.sancord-fijo {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px max(8px, env(safe-area-inset-bottom));
+  background: var(--sancord-oro);
+  border-top: 3px solid var(--sancord);
+  color: #1b2230;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.sancord-fijo .sancord-img { max-height: 26px; max-width: 110px; }
+.sancord-fijo-texto { flex: 1; min-width: 0; }
+.sancord-fijo-x { width: 28px; height: 28px; flex: none; border-radius: 50%; background: rgba(0, 0, 0, 0.12); color: #1b2230; font-size: 0.8rem; }
+
+body[data-patrocinio] { padding-bottom: 90px; }
+body[data-patrocinio] .toast { bottom: 80px; }
+.sancord-mascota { bottom: 84px; transition: right 0.25s, bottom 0.25s; }
+.sancord-globo { bottom: 150px; }
