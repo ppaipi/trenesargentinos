@@ -11,11 +11,15 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
 - `index.html` — clásica (sin tocar).
 - `v1.html` — rediseño estilo cartel de andén (LED ámbar), favoritos, cercanas, avisos 5 min.
 - `v2.html` — diseño cálido (Inter, celeste), mapa en vivo compartido, estado del servicio.
-- `v3.html` — **actual**. Mapa individual por tarjeta con recorrido real sobre las vías
+- `v3.html` — Mapa individual por tarjeta con recorrido real sobre las vías
   (`recorridos.json`), ícono de tren, avisos solo por campana o cuando no hay trenes,
   botón "?" → patrocinador.
-- `patrocinador.html` — v3 + patrocinio meme "Sancord/Sancor Seguros" (re molesto) y
-  Chiqui Tapia ("No trates de entenderla, disfrutala"). Lógica en `js/v3/patrocinio.js`,
+- `v4.html` — **actual**. v3 + punto azul del usuario en el mapa (botón "mi ubicación",
+  `js/v4/ubicacion.js`, sin pedir permiso hasta tocarlo), último resultado guardado
+  por viaje (se muestra mientras carga, 45 min), sentido "hacia X" en cada tarjeta,
+  tema claro por defecto.
+- `patrocinador.html` — v4 + patrocinio meme "Sancord/Sancor Seguros" (re molesto) y
+  Chiqui Tapia ("No trates de entenderla, disfrutala"). Lógica en `js/v4/patrocinio.js`,
   estilos en `css/patrocinio.css`. Imágenes: `img/patrocinador.png` (logo que dio el
   usuario), `img/tapia.png` (Wikimedia Commons, Ministerio de Cultura, CC BY-SA 2.0,
   crédito en el pie).
@@ -29,13 +33,10 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
   (datos.transporte.gob.ar). San Martín tiene algún tramo recto (corte en los datos).
 - Mapa base: Argenmap (IGN, TMS) con respaldo CARTO.
 
-## Pendientes (propuestos para v4)
-1. Ubicación del usuario en el mapa (punto azul) además de "estaciones cercanas".
-2. Coordenadas de las 35 estaciones faltantes (H. Yrigoyen, Villa Lugano, Haedo…).
-3. Recordar el último resultado al reabrir (mostrar trenes de antes mientras carga).
-4. Mostrar sentido del viaje ("hacia Tigre / hacia Retiro").
-5. Investigar si la API trae estado de ascensores/escaleras.
-6. App Android para Play Store vía TWA (PWABuilder/Bubblewrap): cuenta US$25,
+## Pendientes
+1. Coordenadas de las 35 estaciones faltantes (H. Yrigoyen, Villa Lugano, Haedo…).
+2. Investigar si la API trae estado de ascensores/escaleras.
+3. App Android para Play Store vía TWA (PWABuilder/Bubblewrap): cuenta US$25,
    `/.well-known/assetlinks.json` (Jekyll ignora carpetas con punto: agregar
    `include: [".well-known"]` en `_config.yml`), prueba cerrada 12 testers × 14 días.
-7. "Avisame" con la app cerrada (requiere app nativa o servidor push).
+4. "Avisame" con la app cerrada (requiere app nativa o servidor push).
