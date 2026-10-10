@@ -281,7 +281,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         trayecto = "${o.nombre} → ${d.nombre}"
         resultadoVisible = true
         cargando = true
-        irAResultado.tryEmit(Unit)
+        if (!auto) irAResultado.tryEmit(Unit) // al reabrir no se mueve la pantalla sola
 
         if (modo == Modo.PROGRAMADA) {
             programado = true
@@ -481,10 +481,31 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     /* ---------- Varios ---------- */
 
+    var panelAcerca by mutableStateOf(false)
+
     fun alternarMeme() {
         meme = !meme
         almacen.meme = meme
         if (meme) intersticial = 5
+        toast(if (meme) "No trates de entenderla, disfrutala." else "Modo serio. Aburrido, pero puntual.")
+    }
+
+    // Easter egg: 5 toques seguidos al logo activan el patrocinio (como las
+    // opciones de desarrollador de Android).
+    private var toques = 0
+    private var ultimoToque = 0L
+
+    fun toqueLogo() {
+        val ahora = System.currentTimeMillis()
+        toques = if (ahora - ultimoToque < 1500) toques + 1 else 1
+        ultimoToque = ahora
+        when {
+            toques >= 5 -> {
+                toques = 0
+                alternarMeme()
+            }
+            toques >= 3 -> toast("Te faltan ${5 - toques} para disfrutarla")
+        }
     }
 
     fun alternarTema() {
@@ -496,7 +517,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         val o = origen ?: return null
         val d = destino ?: return null
         val url = "https://tapia.chiqui.ar/v5.html?o=${o.id}&d=${d.id}"
-        val texto = "¿Cuándo llega el tren de ${o.nombre} a ${d.nombre}? $url"
+        val texto = "¿Cuándo llega el tren de ${o.nombre} a ${d.nombre}? Miralo en TrenAR: $url"
         return Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, texto), null)
     }
 

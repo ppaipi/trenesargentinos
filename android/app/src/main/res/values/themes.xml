@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fondo celeste desde el arranque (sin destello blanco). -->
+    <style name="Theme.TrenAR" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/celeste</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+    <color name="celeste">#FF66A6FF</color>
+</resources>

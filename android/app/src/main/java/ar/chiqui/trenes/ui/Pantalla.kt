@@ -91,6 +91,7 @@ fun App(vm: AppVM) {
             if (vm.meme) CapasMeme(festejo) { festejo = null }
         }
         if (vm.panelAvisos) PanelAvisos(vm.grupos, vm.lineaPrimero) { vm.panelAvisos = false }
+        if (vm.panelAcerca) PanelAcerca(vm.meme, onMeme = { vm.panelAcerca = false; vm.alternarMeme() }) { vm.panelAcerca = false }
         vm.intersticial?.let { s -> Intersticial(s) { vm.intersticial = null } }
     }
 }

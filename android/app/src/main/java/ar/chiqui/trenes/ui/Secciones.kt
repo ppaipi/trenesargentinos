@@ -27,6 +27,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -87,6 +88,52 @@ fun PanelAvisos(grupos: List<GrupoAvisos>, lineaPrimero: String?, onCerrar: () -
             }
             conAvisos.forEach { g -> g.avisos.forEach { ItemAviso(it, g.linea) } }
             Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+/** "Acerca de": qué es TrenAR, de dónde salen los datos y la puerta escondida al meme. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PanelAcerca(meme: Boolean, onMeme: () -> Unit, onCerrar: () -> Unit) {
+    val ctx = LocalContext.current
+    val cs = MaterialTheme.colorScheme
+    val version = remember { runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: "" }
+    ModalBottomSheet(onDismissRequest = onCerrar) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp).navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Wordmark(tamano = 30f, claro = false)
+            Text("Tu tren, en vivo.", fontWeight = FontWeight.SemiBold, color = cs.onSurfaceVariant)
+            Text(
+                "Arribos en tiempo real, demoras, andén y avisos del servicio de las líneas de Trenes Argentinos " +
+                    "(Mitre, Sarmiento, Roca, San Martín, Belgrano Sur y Tren de la Costa).",
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
+            Text(
+                "Los datos son de Trenes Argentinos (SOFSE). TrenAR es una app no oficial y no está asociada a ninguna empresa ferroviaria.",
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                style = MaterialTheme.typography.bodySmall,
+                color = cs.onSurfaceVariant,
+            )
+            Text(
+                "tapia.chiqui.ar",
+                Modifier.clickable { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://tapia.chiqui.ar/v5.html"))) },
+                color = cs.primary,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text("Versión $version", style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant)
+            // La puerta al patrocinio: casi invisible a propósito.
+            Text(
+                if (meme) "Volver a entenderla" else "No trates de entenderla.",
+                Modifier.clickable(onClick = onMeme).padding(8.dp),
+                style = MaterialTheme.typography.labelSmall,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                color = cs.onSurfaceVariant.copy(alpha = 0.45f),
+            )
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

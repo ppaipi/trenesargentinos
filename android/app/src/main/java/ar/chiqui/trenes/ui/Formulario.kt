@@ -104,30 +104,55 @@ fun Cabecera(vm: AppVM) {
                     )
                 }
             }
-            Text(
-                "¿Cuándo llega tu tren?",
-                Modifier.weight(1f),
-                color = Color.White,
-                fontSize = 28.sp,
-                lineHeight = 32.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                style = sombraTitulo,
-            )
+            Box(Modifier.weight(1f).padding(top = 2.dp), contentAlignment = Alignment.Center) {
+                Wordmark(Modifier.clickable(interactionSource = null, indication = null, onClick = vm::toqueLogo))
+            }
             Row(Modifier.width(88.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-                BotonRedondo("Patrocinador", if (vm.meme) Color(0xFFFFD23F) else translucido, onClick = vm::alternarMeme) {
-                    Text("?", color = if (vm.meme) Color(0xFF0A7D3B) else Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                BotonRedondo("Acerca de TrenAR", translucido, onClick = { vm.panelAcerca = true }) {
+                    Text("?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
                 BotonRedondo("Tema", translucido, onClick = vm::alternarTema) { Luna(Color.White) }
             }
         }
         Text(
+            "¿Cuándo llega tu tren?",
+            Modifier.padding(top = 10.dp),
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            style = sombraTitulo,
+        )
+        Text(
             "Horarios en vivo, demoras y andén de todas las líneas del AMBA.",
-            Modifier.padding(top = 6.dp, start = 8.dp, end = 8.dp),
+            Modifier.padding(top = 4.dp, start = 8.dp, end = 8.dp),
             color = Color.White.copy(alpha = 0.95f),
             fontSize = 15.sp,
             textAlign = TextAlign.Center,
             style = sombraTitulo,
+        )
+    }
+}
+
+/** Marca: "Tren" + pastilla "AR". */
+@Composable
+fun Wordmark(modifier: Modifier = Modifier, tamano: Float = 34f, claro: Boolean = true) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "Tren",
+            color = if (claro) Color.White else MaterialTheme.colorScheme.primary,
+            fontSize = tamano.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-1).sp,
+            style = if (claro) sombraTitulo else TextStyle.Default,
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            "AR",
+            Modifier.clip(RoundedCornerShape(8.dp)).background(if (claro) Color.White else Color(0xFF74ACDF))
+                .padding(horizontal = 7.dp),
+            color = Color(0xFF0B2547),
+            fontSize = (tamano * 0.8f).sp,
+            fontWeight = FontWeight.Bold,
         )
     }
 }
