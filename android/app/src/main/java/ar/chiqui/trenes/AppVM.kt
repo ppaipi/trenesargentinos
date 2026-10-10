@@ -189,20 +189,16 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     /* ---------- Selección ---------- */
 
+    // La estación recién elegida manda: si la otra no comparte ramal se
+    // borra sin avisar (la pantalla pide elegirla de nuevo).
     fun elegirOrigen(e: Estacion) {
         origen = e
-        if (destino?.let { Estaciones.rutaCompartida(e, it) } == null && destino != null) {
-            destino = null
-            toast("Esas estaciones no comparten ramal: elegí otra.")
-        }
+        if (destino?.let { Estaciones.rutaCompartida(e, it) } == null) destino = null
     }
 
     fun elegirDestino(e: Estacion) {
         destino = e
-        if (origen?.let { Estaciones.rutaCompartida(it, e) } == null && origen != null) {
-            origen = null
-            toast("Esas estaciones no comparten ramal: elegí otra.")
-        }
+        if (origen?.let { Estaciones.rutaCompartida(it, e) } == null) origen = null
     }
 
     fun intercambiar() {

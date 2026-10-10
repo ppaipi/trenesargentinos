@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -50,6 +52,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ar.chiqui.trenes.datos.Estacion
@@ -91,6 +95,7 @@ fun Buscador(
     inicial: Vista?,
     onElegir: (Estacion) -> Unit,
     onCerrar: () -> Unit,
+    meme: Boolean = false,
 ) {
     var texto by remember { mutableStateOf("") }
     val pila = remember { mutableStateListOf(inicial ?: vistaInicial(otra)) }
@@ -117,7 +122,7 @@ fun Buscador(
                 }
 
                 if (texto.isNotBlank()) {
-                    ListaEstaciones(Estaciones.buscar(texto).take(60).map { it to Estaciones.lineas(it) }, onElegir)
+                    ListaEstaciones(Estaciones.buscar(texto).take(60).map { it to Estaciones.lineas(it) }, onElegir, Modifier.weight(1f))
                     return@Column
                 }
                 FilaNavegacion(
@@ -136,7 +141,9 @@ fun Buscador(
                         ir(Vista.EnRuta(it))
                     }
                     is Vista.EnRuta -> {
-                        ListaEstaciones(Estaciones.deRuta(vista.ruta).filter { it.id != otra?.id }.map { it to "" }, onElegir)
+                        val lista = Estaciones.deRuta(vista.ruta).filter { it.id != otra?.id }
+                        if (meme && lista.size >= 4) ListaZonas(lista, onElegir, Modifier.weight(1f))
+                        else ListaEstaciones(lista.map { it to "" }, onElegir, Modifier.weight(1f))
                     }
                     is Vista.Cercanas -> {
                         Text(
@@ -145,7 +152,7 @@ fun Buscador(
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        ListaEstaciones(vista.items.map { it.first to formatearDistancia(it.second) }, onElegir)
+                        ListaEstaciones(vista.items.map { it.first to formatearDistancia(it.second) }, onElegir, Modifier.weight(1f))
                     }
                 }
             }
@@ -186,7 +193,7 @@ private fun FilaNavegacion(vista: Vista, puedeVolver: Boolean, onVolver: () -> U
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun <T> Chips(opciones: List<T>, etiqueta: (T) -> String, color: (T) -> Color?, alElegir: (T) -> Unit) {
-    FlowRow(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         opciones.forEach { op ->
             AssistChip(
                 onClick = { alElegir(op) },
@@ -199,23 +206,71 @@ private fun <T> Chips(opciones: List<T>, etiqueta: (T) -> String, color: (T) -> 
 }
 
 @Composable
-private fun ListaEstaciones(items: List<Pair<Estacion, String>>, onElegir: (Estacion) -> Unit) {
+private fun FilaEstacion(e: Estacion, extra: String, onElegir: (Estacion) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable { onElegir(e) }.padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(12.dp).background(colorEstacion(e), CircleShape))
+        Box(Modifier.width(12.dp))
+        Text(e.nombre, Modifier.weight(1f), fontWeight = FontWeight.Medium)
+        Text(extra, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+}
+
+/**
+ * Meme del torneo de 30 equipos en 2 zonas de 15: el ramal se parte en
+ * "Zona A" y "Zona B" de n/2 estaciones, salteadas (no trates de entenderlo).
+ * Si n es impar, la que sobra "asciende por escritorio".
+ */
+@Composable
+private fun ListaZonas(lista: List<Estacion>, onElegir: (Estacion) -> Unit, modifier: Modifier) {
+    val n = lista.size
+    val mitad = n / 2
+    val zonaA = lista.filterIndexed { i, _ -> i % 2 == 0 }.take(mitad)
+    val zonaB = lista.filterIndexed { i, _ -> i % 2 == 1 }.take(mitad)
+    val escritorio = (lista - zonaA.toSet() - zonaB.toSet()).firstOrNull()
+    val oro = Color(0xFFFFD23F)
+    val verde = Color(0xFF0A7D3B)
+    @Composable
+    fun Titulo(texto: String) {
+        Text(
+            texto, Modifier.fillMaxWidth().background(oro).padding(horizontal = 16.dp, vertical = 6.dp),
+            color = verde, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, fontSize = 13.sp,
+        )
+    }
+    LazyColumn(modifier) {
+        item {
+            Row(Modifier.fillMaxWidth().background(Color(0xFF75AADB)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                CaraTapia(48.dp)
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    "Torneo Chiqui: $n estaciones, 2 zonas de $mitad." +
+                        (if (escritorio != null) " ${escritorio.nombre} asciende por escritorio." else "") +
+                        " No trates de entenderlo.",
+                    color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
+                )
+            }
+        }
+        item { Titulo("ZONA A · $mitad estaciones") }
+        items(zonaA, key = { "a${it.id}" }) { FilaEstacion(it, "Zona A", onElegir) }
+        item { Titulo("ZONA B · $mitad estaciones") }
+        items(zonaB, key = { "b${it.id}" }) { FilaEstacion(it, "Zona B", onElegir) }
+        if (escritorio != null) {
+            item { Titulo("ASCENSO POR ESCRITORIO") }
+            item { FilaEstacion(escritorio, "Invitada", onElegir) }
+        }
+    }
+}
+
+@Composable
+private fun ListaEstaciones(items: List<Pair<Estacion, String>>, onElegir: (Estacion) -> Unit, modifier: Modifier = Modifier) {
     if (items.isEmpty()) {
         Text("No se encontraron estaciones", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
         return
     }
-    LazyColumn {
-        itemsIndexed(items, key = { _, it -> it.first.id }) { _, (e, extra) ->
-            Row(
-                Modifier.fillMaxWidth().clickable { onElegir(e) }.padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.size(12.dp).background(colorEstacion(e), CircleShape))
-                Box(Modifier.width(12.dp))
-                Text(e.nombre, Modifier.weight(1f), fontWeight = FontWeight.Medium)
-                Text(extra, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-        }
+    LazyColumn(modifier) {
+        itemsIndexed(items, key = { _, it -> it.first.id }) { _, (e, extra) -> FilaEstacion(e, extra, onElegir) }
     }
 }

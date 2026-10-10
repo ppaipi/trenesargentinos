@@ -62,6 +62,13 @@ private enum class Campo { ORIGEN, DESTINO }
 fun App(vm: AppVM) {
     val ctx = LocalContext.current
     LaunchedEffect(Unit) { vm.toasts.collect { Toast.makeText(ctx, it, Toast.LENGTH_LONG).show() } }
+    // Íconos de la barra de estado claros en modo oscuro (si no, no se ven).
+    val vista = androidx.compose.ui.platform.LocalView.current
+    androidx.compose.runtime.SideEffect {
+        (ctx as? android.app.Activity)?.window?.let {
+            androidx.core.view.WindowCompat.getInsetsController(it, vista).isAppearanceLightStatusBars = !vm.oscuro
+        }
+    }
     TemaTrenes(vm.oscuro) {
         var festejo by remember { mutableStateOf<String?>(null) }
         val festejados = remember { mutableSetOf<String>() }
@@ -201,8 +208,10 @@ private fun Pantalla(vm: AppVM) {
                 o != null && d != null -> {
                     val linea = vm.linea()
                     val color = colorLinea(linea) ?: primario
-                    val demorado = vm.trenes.firstOrNull { (it.demoraMin ?: 0) >= 5 }
-                    vm.trenes.forEachIndexed { i, t ->
+                    // En vivo, el que pasó hace más de 1 min se va sin esperar la próxima consulta.
+                    val trenes = if (vm.programado) vm.trenes else vm.trenes.filter { it.referencia > vm.ahora - 60000 }
+                    val demorado = trenes.firstOrNull { (it.demoraMin ?: 0) >= 5 }
+                    trenes.forEachIndexed { i, t ->
                         item(key = t.clave) {
                             Tarjeta(
                                 t, linea, color,
@@ -251,7 +260,8 @@ private fun Pantalla(vm: AppVM) {
     campo?.let { cual ->
         Buscador(
             titulo = if (cual == Campo.ORIGEN) "Estación de origen" else "Estación de destino",
-            otra = if (cual == Campo.ORIGEN) vm.destino else vm.origen,
+            // El origen se elige libre; solo si quedó vacío se guía por el destino.
+            otra = if (cual == Campo.ORIGEN) vm.destino.takeIf { vm.origen == null } else vm.origen,
             inicial = vistaInicial,
             onElegir = { e ->
                 campo = null
@@ -263,9 +273,14 @@ private fun Pantalla(vm: AppVM) {
                     }
                 } else {
                     vm.elegirDestino(e)
+                    if (vm.origen == null) {
+                        vistaInicial = null
+                        campo = Campo.ORIGEN
+                    }
                 }
             },
             onCerrar = { campo = null },
+            meme = vm.meme,
         )
     }
 }

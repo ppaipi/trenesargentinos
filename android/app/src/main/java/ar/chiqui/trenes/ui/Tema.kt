@@ -1,6 +1,8 @@
 package ar.chiqui.trenes.ui
 
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -111,7 +113,11 @@ private val tipografia = Typography().let { t ->
 
 @Composable
 fun TemaTrenes(oscuro: Boolean, contenido: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (oscuro) oscuroEsquema else claro, typography = tipografia, content = contenido)
+    val esquema = if (oscuro) oscuroEsquema else claro
+    // Sin Surface en la raíz, el texto sin color propio salía negro en modo oscuro.
+    MaterialTheme(colorScheme = esquema, typography = tipografia) {
+        CompositionLocalProvider(LocalContentColor provides esquema.onSurface, content = contenido)
+    }
 }
 
 // Tira de colores de las líneas arriba de todo, como en la web.
