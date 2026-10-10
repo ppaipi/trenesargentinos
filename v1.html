@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#12305b" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1f3c" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="Consultá en tiempo real cuándo llega tu tren, demoras, andén y cuánto dura el viaje. Mitre, Sarmiento, Roca, San Martín, Belgrano Sur y Tren de la Costa.">
+  <link rel="icon" href="Tren.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest-v1.json">
+  <link rel="canonical" href="https://tapia.chiqui.ar/v1.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_AR">
+  <meta property="og:title" content="¿Cuándo llega tu tren? | Trenes Argentinos">
+  <meta property="og:description" content="Horarios en vivo, demoras y andén para todas las líneas del AMBA.">
+  <meta property="og:image" content="https://tapia.chiqui.ar/tren.png">
+  <title>¿Cuándo llega tu tren? Horarios en vivo - Trenes Argentinos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="css/v1.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+
+<body>
+  <header class="cabecera">
+    <div class="cabecera-fila">
+      <h1>¿Cuándo llega tu tren?</h1>
+      <button id="temaBtn" class="boton-icono" type="button" aria-label="Cambiar tema claro/oscuro" title="Tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    </div>
+    <p class="subtitulo">Horarios en vivo, demoras y andén de todas las líneas del AMBA.</p>
+  </header>
+
+  <div id="avisoOffline" class="aviso ocultar" role="status">Sin conexión. Los horarios se actualizan cuando vuelva internet.</div>
+
+  <main>
+    <div id="loginStatus" role="status"><span class="spinner"></span> Conectando con Trenes Argentinos...</div>
+
+    <div id="menu" hidden>
+      <section id="favoritos" class="favoritos ocultar" aria-label="Viajes guardados">
+        <h2 class="titulo-seccion">Tus viajes</h2>
+        <div id="favoritosLista" class="favoritos-lista"></div>
+      </section>
+
+      <div class="tarjeta-busqueda">
+        <div class="modo-busqueda" role="tablist">
+          <button type="button" class="modo-chip activo" data-modo="vivo" role="tab" aria-selected="true">En vivo</button>
+          <button type="button" class="modo-chip" data-modo="programada" role="tab" aria-selected="false">Programar viaje</button>
+        </div>
+
+        <div class="campo-busqueda">
+          <label for="origin-input">Desde</label>
+          <div class="fila-input">
+            <input type="text" id="origin-input" autocomplete="off" placeholder="Estación de origen" enterkeyhint="next">
+            <button id="cercanaBtn" class="boton-icono boton-gps" type="button" title="Usar la estación más cercana" aria-label="Usar la estación más cercana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
+          </div>
+          <div id="origin-panel" class="panel-busqueda ocultar">
+            <div id="origin-chips" class="chips-fila"></div>
+            <ul id="origin-list" class="autocomplete-list" role="listbox"></ul>
+          </div>
+        </div>
+
+        <div class="fila-swap">
+          <button id="swapBtn" type="button" title="Intercambiar origen y destino" aria-label="Intercambiar origen y destino">⇅</button>
+        </div>
+
+        <div class="campo-busqueda">
+          <label for="destination-input">Hasta</label>
+          <input type="text" id="destination-input" autocomplete="off" placeholder="Estación de destino" enterkeyhint="search">
+          <div id="destination-panel" class="panel-busqueda ocultar">
+            <div id="destination-chips" class="chips-fila"></div>
+            <ul id="destination-list" class="autocomplete-list" role="listbox"></ul>
+          </div>
+        </div>
+
+        <div id="fechaHora" class="fila-fecha-hora ocultar">
+          <div>
+            <label for="fecha-input">Fecha</label>
+            <input type="date" id="fecha-input">
+          </div>
+          <div>
+            <label for="hora-input">Hora</label>
+            <input type="time" id="hora-input">
+          </div>
+        </div>
+
+        <button id="buscarBtn" class="boton-principal" type="button" disabled>Buscar horarios</button>
+      </div>
+    </div>
+
+    <section id="resultado" class="ocultar" aria-live="polite">
+      <div class="resultado-cabecera">
+        <div>
+          <h2 id="trayecto" class="trayecto"></h2>
+          <p id="estadoActualizacion" class="estado-actualizacion"></p>
+        </div>
+        <div class="resultado-acciones">
+          <button id="favBtn" class="boton-icono" type="button" aria-pressed="false" title="Guardar viaje" aria-label="Guardar viaje">☆</button>
+          <button id="compartirBtn" class="boton-icono" type="button" title="Compartir" aria-label="Compartir viaje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></button>
+        </div>
+      </div>
+      <div id="result"></div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p>Datos de <a href="https://www.argentina.gob.ar/transporte/trenes-argentinos" rel="noopener" target="_blank">Trenes Argentinos</a>. App no oficial.</p>
+    <p><a href="gps.html">Mapa en vivo</a> · <a href="index.html">Versión clásica</a></p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script type="module" src="js/v1/app.js"></script>
+</body>
+</html>
