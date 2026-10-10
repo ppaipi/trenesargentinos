@@ -28,15 +28,15 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
   - Arribos: `/arribos/estacion/{id}?hasta={id}[&fecha&hora&tipoBusqueda=partida]`
   - Avisos: `/infraestructura/gerencias` (alertas por línea, vigencia, criticidad).
-- `estaciones-coords.json`: coords de OSM (sin subte) + manuales. 35 de 252 sin coords.
+- `estaciones-coords.json`: coords de OSM (sin subte) + manuales. Las 252 tienen coords
+  (ramal Puente Alsina y H. Yrigoyen salen de nodos `disused:railway` de OSM).
 - `recorridos.json`: polilínea por `linea|||ramal`, Dijkstra sobre vías OSM + red ADIF
   (datos.transporte.gob.ar). San Martín tiene algún tramo recto (corte en los datos).
 - Mapa base: Argenmap (IGN, TMS) con respaldo CARTO.
 
 ## Pendientes
-1. Coordenadas de las 35 estaciones faltantes (H. Yrigoyen, Villa Lugano, Haedo…).
-2. Investigar si la API trae estado de ascensores/escaleras.
-3. App Android para Play Store vía TWA (PWABuilder/Bubblewrap): cuenta US$25,
+1. Investigar si la API trae estado de ascensores/escaleras.
+2. App Android para Play Store vía TWA (PWABuilder/Bubblewrap): cuenta US$25,
    `/.well-known/assetlinks.json` (Jekyll ignora carpetas con punto: agregar
    `include: [".well-known"]` en `_config.yml`), prueba cerrada 12 testers × 14 días.
-4. "Avisame" con la app cerrada (requiere app nativa o servidor push).
+3. "Avisame" con la app cerrada (requiere app nativa o servidor push).
