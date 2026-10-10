@@ -129,7 +129,7 @@ document.addEventListener("trenes:resultados", ({ detail }) => {
   // despues del segundo tren (o al final si hay menos).
   const tarjetas = result.querySelectorAll(".horario");
   const ancla = tarjetas[1] || tarjetas[0];
-  if (ancla) ancla.after(anuncio);
+  if (ancla) ancla.nextElementSibling !== anuncio && ancla.after(anuncio);
   else result.append(anuncio);
 
   if (detail.trenes.length === 0) {

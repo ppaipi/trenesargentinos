@@ -107,6 +107,9 @@ function interstitial(segundos) {
   const fondo = el("div", "sancord-inter");
   const caja = el("div", "sancord-inter-caja");
   caja.append(el("span", "sancord-tag", "Publicidad"), logo(), el("p", "sancord-inter-texto", azar(SLOGANS)));
+  const tapia = el("div", "tapia-inter");
+  tapia.append(caraTapia(), el("span", null, `“${FRASE_TAPIA}”`));
+  caja.append(tapia);
   const cerrar = el("button", "sancord-inter-cerrar", `Saltar anuncio en ${segundos}`);
   cerrar.type = "button";
   cerrar.disabled = true;
@@ -175,7 +178,64 @@ function tituloInsistente() {
   });
 }
 
+/* ---------- Chiqui Tapia (meme) ---------- */
+
+const FRASE_TAPIA = "No trates de entenderla, disfrutala";
+const FRASES_TAPIA = [
+  FRASE_TAPIA,
+  "¿El tren no llega? No trates de entenderlo, disfrutalo.",
+  "Te estoy mirando. Subí al tren.",
+  "Esta app no se explica, se siente.",
+];
+
+// La foto la pone el dueño del sitio en img/tapia.png. Si no esta, el meme
+// sale igual pero solo con texto.
+let fotoTapia = null;
+const cargaTapia = new Promise((ok) => {
+  const img = new Image();
+  img.onload = () => {
+    fotoTapia = img.src;
+    ok(true);
+  };
+  img.onerror = () => ok(false);
+  img.src = "img/tapia.png";
+});
+
+function caraTapia(clase) {
+  const cara = el("div", `tapia-cara ${clase || ""}`);
+  if (fotoTapia) cara.style.backgroundImage = `url("${fotoTapia}")`;
+  else cara.classList.add("sin-foto");
+  return cara;
+}
+
+// Se asoma desde el costado de la pantalla, te mira, dice algo y se va.
+function tapiaQueSeAsoma() {
+  const caja = el("div", "tapia-asoma");
+  const globo = el("div", "tapia-globo");
+  caja.append(caraTapia(), globo);
+  document.body.append(caja);
+  const asomarse = () => {
+    if (document.hidden) return;
+    globo.textContent = azar(FRASES_TAPIA);
+    caja.classList.toggle("derecha", Math.random() < 0.5);
+    caja.classList.add("visible");
+    setTimeout(() => caja.classList.remove("visible"), 5000);
+  };
+  setTimeout(asomarse, 9000);
+  setInterval(asomarse, 35000);
+  caja.addEventListener("click", () => caja.classList.remove("visible"));
+}
+
+function tarjetaTapia() {
+  const a = el("aside", "sancord-anuncio tapia-anuncio");
+  a.append(el("span", "sancord-tag", "Mensaje institucional"), caraTapia("grande"));
+  const texto = el("p", "tapia-frase", `“${FRASE_TAPIA}”`);
+  a.append(texto, el("small", null, "— el Chiqui, sobre los horarios del Roca"));
+  return a;
+}
+
 const anuncios = [];
+let tarjetaDeTapia = null;
 let cargado = 0;
 
 document.addEventListener("trenes:listo", () => {
@@ -189,17 +249,22 @@ document.addEventListener("trenes:listo", () => {
     el(
       "p",
       "sancord-disclaimer",
-      "Patrocinio de mentira, es un meme. Sancor Seguros no tiene nada que ver con esta página (ni nos pagó un cospel)."
+      "Patrocinio de mentira, es un meme. Ni Sancor Seguros ni el Chiqui Tapia tienen nada que ver con esta página (ni nos pagaron un cospel)."
     )
   );
   mascota();
   bannerFijo();
   tituloInsistente();
-  interstitial(5);
+  cargaTapia.then(() => {
+    interstitial(5);
+    tapiaQueSeAsoma();
+  });
 });
 
 document.addEventListener("trenes:busqueda", ({ detail }) => {
   anuncios.splice(0).forEach((a) => a.remove());
+  tarjetaDeTapia?.remove();
+  tarjetaDeTapia = null;
   document.getElementById("estadoActualizacion").dataset.sancord =
     detail.modo === "vivo" ? "Monitoreado por Sancord Seguros™" : "";
   // Cada busqueda (salvo la automatica al abrir) trae su anuncio de 3 segundos.
@@ -222,10 +287,15 @@ document.addEventListener("trenes:resultados", ({ detail }) => {
   }
   anuncios.forEach((a, i) => {
     const ancla = tarjetas[i * 2 + 1];
-    if (ancla) ancla.after(a);
+    if (ancla) ancla.nextElementSibling !== a && ancla.after(a);
     else if (i === 0) result.append(a);
     else a.remove();
   });
+
+  if (!tarjetaDeTapia) tarjetaDeTapia = tarjetaTapia();
+  const primera = tarjetas[0];
+  if (primera && primera.nextElementSibling !== tarjetaDeTapia) primera.after(tarjetaDeTapia);
+  else if (!primera) result.prepend(tarjetaDeTapia);
 
   if (detail.trenes.length === 0) {
     anuncios[0].querySelector("p").textContent =

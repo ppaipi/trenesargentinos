@@ -304,7 +304,7 @@ function render(trenes, programada) {
     }
     tarjeta.actualizar(t);
     tarjeta.div.classList.toggle("proximo", i === 0 && !programada);
-    resultDiv.append(tarjeta.div); // append mueve el nodo: deja el DOM en el orden de llegada
+    ubicarEnOrden(tarjeta.div, i === 0 ? null : tarjetas.get(trenes[i - 1].clave).div);
   });
 
   for (const [clave, t] of tarjetas) {
@@ -314,6 +314,16 @@ function render(trenes, programada) {
     }
   }
   emitir("resultados", { trenes, programada, tarjetas: [...tarjetas.values()] });
+}
+
+// Mueve la tarjeta solo si no esta ya en su lugar. Reinsertarla en cada
+// sondeo reiniciaba su animacion de entrada y la pantalla titilaba.
+function ubicarEnOrden(div, anterior) {
+  let esperado = anterior ? anterior.nextElementSibling : resultDiv.firstElementChild;
+  while (esperado && !esperado.classList.contains("horario")) esperado = esperado.nextElementSibling;
+  if (esperado === div) return;
+  if (anterior) anterior.after(div);
+  else resultDiv.prepend(div);
 }
 
 function tick() {

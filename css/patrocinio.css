@@ -190,3 +190,55 @@ body[data-patrocinio] { padding-bottom: 90px; }
 body[data-patrocinio] .toast { bottom: 80px; }
 .sancord-mascota { bottom: 84px; transition: right 0.25s, bottom 0.25s; }
 .sancord-globo { bottom: 150px; }
+
+/* Chiqui Tapia */
+.tapia-cara {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: #75aadb center / cover no-repeat;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tapia-cara.sin-foto { display: grid; place-items: center; }
+.tapia-cara.sin-foto::after { content: "CT"; color: #fff; font-weight: 900; font-size: 1.3rem; }
+.tapia-cara.grande { width: 96px; height: 96px; margin: 4px auto 0; }
+
+.tapia-asoma {
+  position: fixed;
+  top: 40%;
+  left: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-110%) rotate(18deg);
+  transition: transform 0.5s cubic-bezier(0.3, 1.4, 0.6, 1);
+  cursor: pointer;
+}
+
+.tapia-asoma .tapia-cara { width: 92px; height: 92px; }
+.tapia-asoma.visible { transform: translateX(-28px) rotate(12deg); }
+.tapia-asoma.derecha { left: auto; right: 0; flex-direction: row-reverse; transform: translateX(110%) rotate(-18deg); }
+.tapia-asoma.derecha.visible { transform: translateX(28px) rotate(-12deg); }
+
+.tapia-globo {
+  max-width: 190px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff;
+  color: #1b2230;
+  border: 2px solid #75aadb;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.tapia-anuncio { text-align: center; background: repeating-linear-gradient(90deg, #75aadb 0 22px, #fff 22px 44px); }
+.tapia-anuncio .tapia-frase { display: inline-block; margin: 10px 0 4px; padding: 6px 10px; border-radius: 8px; background: #fff; font-size: 1.05rem; font-style: italic; }
+.tapia-anuncio small { display: block; padding: 2px 8px; background: rgba(255, 255, 255, 0.85); border-radius: 6px; width: fit-content; margin: 0 auto; }
+
+.tapia-inter { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; text-align: left; font-weight: 700; font-style: italic; }
+.tapia-inter .tapia-cara { width: 56px; height: 56px; }
