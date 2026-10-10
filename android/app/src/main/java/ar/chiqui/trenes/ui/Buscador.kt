@@ -1,0 +1,187 @@
+package ar.chiqui.trenes.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import ar.chiqui.trenes.datos.Estacion
+import ar.chiqui.trenes.datos.Estaciones
+import ar.chiqui.trenes.datos.LINEAS_PRINCIPALES
+import ar.chiqui.trenes.datos.Ruta
+import ar.chiqui.trenes.datos.formatearDistancia
+
+/** Qué muestra el buscador cuando no hay texto escrito. */
+sealed interface Vista {
+    data object Lineas : Vista
+    data class Ramales(val linea: String) : Vista
+    data class RamalesDe(val otra: Estacion) : Vista
+    data class EnRuta(val ruta: Ruta) : Vista
+    data class Cercanas(val items: List<Pair<Estacion, Double>>) : Vista
+}
+
+private fun vistaInicial(otra: Estacion?): Vista = when {
+    otra == null -> Vista.Lineas
+    otra.rutas.size == 1 -> Vista.EnRuta(otra.rutas[0])
+    else -> Vista.RamalesDe(otra)
+}
+
+private fun ramalesOEstaciones(linea: String): Vista {
+    val ramales = Estaciones.ramalesDeLinea(linea)
+    return if (ramales.size == 1) Vista.EnRuta(Ruta(linea, ramales[0])) else Vista.Ramales(linea)
+}
+
+/**
+ * Buscador de estaciones a pantalla completa: texto libre o navegación
+ * línea → ramal → estaciones (en orden desde la cabecera). Si la otra estación
+ * ya está elegida, arranca mostrando solo los ramales que comparte con ella.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun Buscador(
+    titulo: String,
+    otra: Estacion?,
+    inicial: Vista?,
+    onElegir: (Estacion) -> Unit,
+    onCerrar: () -> Unit,
+) {
+    var texto by remember { mutableStateOf("") }
+    val pila = remember { mutableStateListOf(inicial ?: vistaInicial(otra)) }
+    val foco = remember { FocusRequester() }
+    val vista = pila.last()
+    val ir = { v: Vista -> pila.add(v) }
+
+    Dialog(onDismissRequest = onCerrar, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.statusBarsPadding().imePadding()) {
+                Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = {
+                        if (texto.isEmpty() && pila.size > 1) pila.removeAt(pila.lastIndex) else onCerrar()
+                    }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver") }
+                    OutlinedTextField(
+                        value = texto,
+                        onValueChange = { texto = it },
+                        modifier = Modifier.weight(1f).focusRequester(foco),
+                        placeholder = { Text(titulo) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { Estaciones.buscar(texto).firstOrNull()?.let(onElegir) }),
+                    )
+                }
+                LaunchedEffect(Unit) { if (inicial == null) foco.requestFocus() }
+
+                if (texto.isNotBlank()) {
+                    ListaEstaciones(Estaciones.buscar(texto).take(60).map { it to Estaciones.lineas(it) }, onElegir)
+                    return@Column
+                }
+                when (vista) {
+                    Vista.Lineas -> Chips(LINEAS_PRINCIPALES, { it }, { colorLinea(it) }) { ir(ramalesOEstaciones(it)) }
+                    is Vista.Ramales -> Chips(Estaciones.ramalesDeLinea(vista.linea), { it }, { colorLinea(vista.linea) }) {
+                        ir(Vista.EnRuta(Ruta(vista.linea, it)))
+                    }
+                    is Vista.RamalesDe -> Chips(vista.otra.rutas, { "${it.ramal} · ${it.linea}" }, { colorLinea(it.linea) }) {
+                        ir(Vista.EnRuta(it))
+                    }
+                    is Vista.EnRuta -> {
+                        Text(
+                            "${vista.ruta.linea} · ${vista.ruta.ramal}",
+                            Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        ListaEstaciones(Estaciones.deRuta(vista.ruta).filter { it.id != otra?.id }.map { it to "" }, onElegir)
+                    }
+                    is Vista.Cercanas -> {
+                        Text(
+                            "Estaciones cerca tuyo",
+                            Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        ListaEstaciones(vista.items.map { it.first to formatearDistancia(it.second) }, onElegir)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun <T> Chips(opciones: List<T>, etiqueta: (T) -> String, color: (T) -> Color?, alElegir: (T) -> Unit) {
+    FlowRow(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        opciones.forEach { op ->
+            AssistChip(
+                onClick = { alElegir(op) },
+                label = { Text(etiqueta(op)) },
+                leadingIcon = color(op)?.let { c -> { Box(Modifier.size(10.dp).background(c, CircleShape)) } },
+                colors = AssistChipDefaults.assistChipColors(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ListaEstaciones(items: List<Pair<Estacion, String>>, onElegir: (Estacion) -> Unit) {
+    if (items.isEmpty()) {
+        Text("No se encontraron estaciones", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        return
+    }
+    LazyColumn {
+        itemsIndexed(items, key = { _, it -> it.first.id }) { _, (e, extra) ->
+            Row(
+                Modifier.fillMaxWidth().clickable { onElegir(e) }.padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.size(12.dp).background(colorEstacion(e), CircleShape))
+                Box(Modifier.width(12.dp))
+                Text(e.nombre, Modifier.weight(1f), fontWeight = FontWeight.Medium)
+                Text(extra, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        }
+    }
+}

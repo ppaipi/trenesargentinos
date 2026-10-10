@@ -48,7 +48,14 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
    "invierno 2026" (vigente 02/03/2026, frecuencia desde Lacroze). Belgrano Norte:
    Horario N° 21 (punta a punta, frecuencia desde Retiro). Al cambiar un horario
    (ej. Urquiza verano), re-parsear el PDF nuevo con `pdftotext -layout`.
-2. App Android para Play Store vía TWA (PWABuilder/Bubblewrap): cuenta US$25,
-   `/.well-known/assetlinks.json` (Jekyll ignora carpetas con punto: agregar
-   `include: [".well-known"]` en `_config.yml`), prueba cerrada 12 testers × 14 días.
-3. "Avisame" con la app cerrada (requiere app nativa o servidor push).
+2. App Android nativa (Kotlin + Compose) en `android/`, paquete `ar.chiqui.trenes`.
+   Igual a v5 (sin patrocinio): buscador, arribos en vivo, favoritos, cercanas, mapa
+   osmdroid + Argenmap con recorrido real, avisos, líneas programadas (plegadas).
+   "Avisame" usa AlarmManager: llega con la app cerrada (último horario conocido).
+   Los JSON de la raíz se copian a assets al compilar (`copiarDatos`).
+   Herramientas en `~/Android` (jdk, Sdk, emulador AVD `prueba`). Build:
+   `cd android && JAVA_HOME=~/Android/jdk ./gradlew assembleRelease` (o `bundleRelease` para Play).
+   Firma: `~/Android/trenes-subida.jks` + `trenes-firma.properties` (FUERA del repo; hacer backup).
+   Falta: pagar cuenta Play (US$25), ícono adaptativo, ficha de la tienda, prueba cerrada
+   12 testers × 14 días. `programados` duplicado en `datos/Programados.kt`: actualizar ambos.
+3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
