@@ -16,12 +16,13 @@ export const LINEAS_PROGRAMADAS = [
       sabados: { "General Lemos": ["01:00", "23:48"], "Federico Lacroze": ["01:00", "23:50"] },
       domingos: { "General Lemos": ["03:12", "23:35"], "Federico Lacroze": ["01:00", "23:50"] },
     },
-    frecuenciaMin: null, // Metrovías no publica frecuencia por día
+    // Intervalo entre salidas desde Lacroze (mediana por franja, PDF "invierno 2026"):
+    frecuenciaMin: { habiles: "10-15", sabados: "15-20", domingos: "30" },
     fuente: {
-      url: "https://metrovias.com.ar/index.php/horarios-del-servicio-linea-urquiza/",
+      url: "https://metrovias.com.ar/wp-content/uploads/2026/04/Horarios-Urquiza-invierno-2026-WEB-2.pdf",
       nombre: "Metrovías",
     },
-    vigencia: null,
+    vigencia: "02/03/2026",
   },
   {
     id: "belgrano-norte",
