@@ -186,7 +186,36 @@ const FRASES_TAPIA = [
   "¿El tren no llega? No trates de entenderlo, disfrutalo.",
   "Te estoy mirando. Subí al tren.",
   "Esta app no se explica, se siente.",
+  "Andén 4. O el 5. No trates de entenderlo.",
+  "El tren viene. Cuándo, no sé. Disfrutalo.",
+  "Demora de 20 minutos: es parte del show.",
+  "Si este tren llega a horario lo convoco a la Selección.",
+  "Este torneo... digo, este ramal, tiene más vueltas que la Liga Profesional.",
+  "Cargá la SUBE, que te estoy viendo.",
+  "Yo también estoy esperando el Roca, hermano.",
+  "¿Llegás tarde? Decí que fue el VAR.",
 ];
+
+// Cuando un tren llega ("YA"), la cara aparece gigante en el medio.
+function tapiaFestejo(texto) {
+  const f = el("div", "tapia-festejo");
+  f.append(caraTapia("festejo"), el("p", null, texto));
+  document.body.append(f);
+  f.addEventListener("click", () => f.remove());
+  setTimeout(() => f.remove(), 2800);
+}
+
+function vigilarLlegadas() {
+  const festejados = new WeakSet();
+  setInterval(() => {
+    document.querySelectorAll(".horario .cuenta.ya").forEach((c) => {
+      const tarjeta = c.closest(".horario");
+      if (festejados.has(tarjeta)) return;
+      festejados.add(tarjeta);
+      tapiaFestejo(azar(["¡LLEGÓ! No trates de entenderlo.", "¡Tren en andén! Disfrutalo.", "¡Subí, subí, que se va!"]));
+    });
+  }, 1000);
+}
 
 // La foto la pone el dueño del sitio en img/tapia.png. Si no esta, el meme
 // sale igual pero solo con texto.
@@ -250,7 +279,8 @@ document.addEventListener("trenes:listo", () => {
       "p",
       "sancord-disclaimer",
       "Patrocinio de mentira, es un meme. Ni Sancor Seguros ni el Chiqui Tapia tienen nada que ver con esta página (ni nos pagaron un cospel)."
-    )
+    ),
+    el("p", "sancord-disclaimer", "Foto de C. Tapia: Ministerio de Cultura de la Nación, CC BY-SA 2.0, vía Wikimedia Commons.")
   );
   mascota();
   bannerFijo();
@@ -258,6 +288,20 @@ document.addEventListener("trenes:listo", () => {
   cargaTapia.then(() => {
     interstitial(5);
     tapiaQueSeAsoma();
+    vigilarLlegadas();
+    // La mascota a veces se convierte en el Chiqui.
+    const m = document.querySelector(".sancord-mascota");
+    const escudo = m.innerHTML;
+    setInterval(() => {
+      const esTapia = m.classList.toggle("es-tapia");
+      if (esTapia && fotoTapia) {
+        m.innerHTML = "";
+        m.style.backgroundImage = `url("${fotoTapia}")`;
+      } else {
+        m.innerHTML = escudo;
+        m.style.backgroundImage = "";
+      }
+    }, 12000);
   });
 });
 

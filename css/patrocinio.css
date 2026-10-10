@@ -242,3 +242,30 @@ body[data-patrocinio] .toast { bottom: 80px; }
 
 .tapia-inter { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; text-align: left; font-weight: 700; font-style: italic; }
 .tapia-inter .tapia-cara { width: 56px; height: 56px; }
+
+.tapia-festejo {
+  position: fixed;
+  inset: 0;
+  z-index: 3100;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  pointer-events: auto;
+  background: radial-gradient(circle, rgba(117, 170, 219, 0.55), rgba(0, 0, 0, 0.55));
+  animation: sancord-entra 0.2s ease;
+}
+
+.tapia-cara.festejo { width: min(60vw, 280px); height: min(60vw, 280px); border-width: 6px; animation: tapia-gira 2.8s ease-out; }
+.tapia-festejo p { margin: 0; padding: 8px 14px; border-radius: 10px; background: #fff; color: #1b2230; font-size: 1.3rem; font-weight: 900; text-align: center; transform: rotate(-3deg); }
+
+@keyframes tapia-gira {
+  0% { transform: scale(0.1) rotate(-540deg); }
+  35% { transform: scale(1.15) rotate(10deg); }
+  50% { transform: scale(1) rotate(-6deg); }
+  100% { transform: scale(1.05) rotate(0); }
+}
+
+.sancord-mascota.es-tapia { background: #75aadb center / cover no-repeat; border-color: #fff; }
+.tapia-asoma .tapia-cara { animation: tapia-mira 1.6s ease-in-out infinite; }
+@keyframes tapia-mira { 50% { transform: rotate(-8deg) scale(1.04); } }
