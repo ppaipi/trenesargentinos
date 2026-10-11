@@ -51,7 +51,7 @@ object Api {
         try {
             c.connectTimeout = TIMEOUT_MS
             c.readTimeout = TIMEOUT_MS
-            c.setRequestProperty("User-Agent", "TrenAR/1.0") // sin modelo de teléfono ni versión de Android
+            c.setRequestProperty("User-Agent", "okhttp/4.9.2") // Cambiado el UA de la app para matchear el de la aplicación oficial y evitar futuros bloqueos.
             auth?.let { c.setRequestProperty("Authorization", it) }
             if (cuerpo != null) {
                 c.requestMethod = "POST"
