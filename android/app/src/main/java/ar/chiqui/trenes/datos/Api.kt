@@ -140,6 +140,24 @@ object Api {
         return (get(ruta) as? JSONObject)?.optJSONArray("results").objetos()
     }
 
+    /** Próximos trenes de o a d ya normalizados, con los nombres de nuestra lista (app y widget). */
+    suspend fun proximos(o: Estacion, d: Estacion, max: Int, fecha: String? = null, hora: String? = null): List<Tren> {
+        val crudos = arribos(o.id, d.id, fecha, hora)
+        return withContext(Dispatchers.Default) {
+            crudos.mapNotNull { normalizar(it, d.id) }
+                // La API abrevia nombres ("Plaza C."): mostramos los de nuestra lista.
+                .map { t ->
+                    t.copy(
+                        estacionOrigen = o.nombre,
+                        estacionDestino = d.nombre,
+                        hacia = t.haciaId?.let { Estaciones.porId(it)?.nombre } ?: t.hacia,
+                    )
+                }
+                .sortedBy { it.referencia }
+                .take(max)
+        }
+    }
+
     private fun fecha(v: Any?): Long? {
         val s = (v as? String)?.takeIf { it.isNotBlank() } ?: return null
         return runCatching { OffsetDateTime.parse(s).toInstant().toEpochMilli() }.getOrNull()

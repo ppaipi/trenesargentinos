@@ -6,4 +6,6 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
     <color name="celeste">#FF66A6FF</color>
+    <color name="tinta">#FF0A2540</color>
+    <color name="tinta_suave">#B30A2540</color>
 </resources>
