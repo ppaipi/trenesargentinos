@@ -6,7 +6,10 @@ import ar.chiqui.trenes.datos.detectarCambioTren
 import ar.chiqui.trenes.datos.LatLon
 import ar.chiqui.trenes.datos.ordenarGeografico
 import ar.chiqui.trenes.datos.zonasTorneo
+import ar.chiqui.trenes.datos.Tren
 import ar.chiqui.trenes.ui.cuentaRegresiva
+import ar.chiqui.trenes.widget.faltanTexto
+import ar.chiqui.trenes.widget.proximoTick
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
@@ -85,5 +88,22 @@ class LogicaTest {
             ordenarGeografico(lista).map { it.nombre },
         )
         assertEquals(listOf("A", "B"), ordenarGeografico(listOf(est("B"), est("A"))).map { it.nombre })
+    }
+
+    @Test
+    fun widget_faltan() {
+        assertEquals("ahora", faltanTexto(en(30.0), t0))
+        assertEquals("ahora", faltanTexto(en(-30.0), t0))
+        assertNull(faltanTexto(en(-61.0), t0))
+        assertEquals("en 4 min", faltanTexto(en(299.0), t0))
+        assertEquals("en 1 h 05", faltanTexto(en(3900.0), t0))
+    }
+
+    @Test
+    fun widget_proximoTick() {
+        fun tren(seg: Double) = Tren("c", "r", "o", "d", false, en(seg), null, false, null, null, null, null, null, null, null)
+        assertEquals(t0 + 60000, proximoTick(emptyList(), t0))
+        assertEquals(en(35.0), proximoTick(listOf(tren(30.0), tren(600.0)), t0))
+        assertEquals(t0 + 15000, proximoTick(listOf(tren(1.0)), t0))
     }
 }

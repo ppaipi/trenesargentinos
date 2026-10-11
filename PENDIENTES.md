@@ -25,6 +25,10 @@ Todo cambio va en la web y en la app Android a la vez.
   web = estáticos del manifest (`?ir=favorito|cercanas|avisos`), no puede listar favoritos.
 - Tren con "Avisame": alerta si desaparece antes de su hora o suma >= 5 min de demora
   (`detectarCambioTren` en `logica.js` / `datos/Seguimiento.kt`; web `revisarSeguidos`, app `Seguidos.kt`).
+- Widget Android (solo app, `android/.../widget/`): próximo y siguiente tren de un favorito o
+  reciente elegido al agregarlo (`ConfigWidget`), cuenta regresiva en vivo (Android 7+), se
+  redibuja cada minuto con la pantalla prendida, consulta la API si el dato tiene más de 5 min
+  (`Api.proximos`, compartido con la app); tocarlo abre el viaje (link `?o=&d=`).
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -70,8 +74,7 @@ Todo cambio va en la web y en la app Android a la vez.
 3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
-Prioridad: 12 y 15.
-12. **Widget Android** con el próximo tren de un viaje favorito (web: no aplica; ya tiene título).
+Prioridad: 15.
 13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).
 15. **Modo "estoy en el andén"**: pantalla grande con la cuenta regresiva, sin apagarse
     (Wake Lock en web, `keepScreenOn` en app), legible de lejos.

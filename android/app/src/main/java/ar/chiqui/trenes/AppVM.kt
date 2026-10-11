@@ -365,23 +365,11 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     private suspend fun consultar(o: Estacion, d: Estacion, programada: Boolean) {
         try {
-            val crudos = if (programada) {
-                Api.arribos(o.id, d.id, fecha.toString(), horaProg.format(DateTimeFormatter.ofPattern("HH:mm")))
+            val max = if (programada) 12 else 8
+            val lista = if (programada) {
+                Api.proximos(o, d, max, fecha.toString(), horaProg.format(DateTimeFormatter.ofPattern("HH:mm")))
             } else {
-                Api.arribos(o.id, d.id)
-            }
-            val lista = withContext(Dispatchers.Default) {
-                crudos.mapNotNull { Api.normalizar(it, d.id) }
-                    // La API abrevia nombres ("Plaza C."): mostramos los de nuestra lista.
-                    .map { t ->
-                        t.copy(
-                            estacionOrigen = o.nombre,
-                            estacionDestino = d.nombre,
-                            hacia = t.haciaId?.let { Estaciones.porId(it)?.nombre } ?: t.hacia,
-                        )
-                    }
-                    .sortedBy { it.referencia }
-                    .take(if (programada) 12 else 8)
+                Api.proximos(o, d, max)
             }
             ultimaOk = System.currentTimeMillis()
             error = null
