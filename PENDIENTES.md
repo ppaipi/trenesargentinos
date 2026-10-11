@@ -42,6 +42,11 @@ Todo cambio va en la web y en la app Android a la vez.
   propia línea preferidas, sin lazos ida-y-vuelta. TdlC (`light_rail`) y Apeadero Km 12 (tramo
   `railway=razed` en Budge) rehechos con `herramientas/recorrido.py`. Al cambiarlo,
   subir `recorridos.json?v=N` en `js/v4/mapa-tren.js`.
+- Programados (Urquiza, Belgrano Norte): estaciones en orden con coords de nodos OSM dentro
+  de `js/v5/programados-data.js` y `datos/Programados.kt` (`estaciones`, `recorrido`); no
+  tienen id SOFSE ni van en `estaciones-coords.json`. Polilíneas `Urquiza|||Urquiza` y
+  `Belgrano Norte|||Belgrano Norte` hechas con `recorrido.py` pasando un coords.json temporal
+  (ids 1..N) como 6.º argumento. Mapa: `crearMapaLinea` (web) / `MapaLinea` (app).
 - Mapa base: Argenmap (IGN, TMS) con respaldo CARTO.
 
 ## Tests y CI
@@ -75,6 +80,5 @@ Todo cambio va en la web y en la app Android a la vez.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
 Prioridad: 15.
-13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).
 15. **Modo "estoy en el andén"**: pantalla grande con la cuenta regresiva, sin apagarse
     (Wake Lock en web, `keepScreenOn` en app), legible de lejos.

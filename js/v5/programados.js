@@ -4,6 +4,7 @@
 // Mostramos cabeceras + frecuencia según horario oficial, siempre etiquetado
 // como programado (no en vivo), con link a la fuente.
 import { LINEAS_PROGRAMADAS } from "./programados-data.js";
+import { crearMapaLinea } from "../v4/mapa-tren.js";
 
 const DIAS = [
   ["habiles", "Días hábiles"],
@@ -82,6 +83,23 @@ function crearTarjeta(ln) {
     `Horario oficial de <a href="${ln.fuente.url}" rel="noopener" target="_blank">${ln.fuente.nombre}</a>${vig}. ` +
     `Los horarios programados no confirman circulación.`;
   card.append(pie);
+
+  if (ln.recorrido && ln.estaciones?.length) {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "boton-secundario";
+    boton.textContent = "Ver mapa";
+    const mapaDiv = document.createElement("div");
+    mapaDiv.className = "mapa ocultar";
+    let mapa = null;
+    boton.addEventListener("click", () => {
+      const abrir = mapaDiv.classList.contains("ocultar");
+      mapaDiv.classList.toggle("ocultar", !abrir);
+      boton.textContent = abrir ? "Ocultar mapa" : "Ver mapa";
+      if (abrir) (mapa ??= crearMapaLinea(mapaDiv, ln)).abrir();
+    });
+    card.append(boton, mapaDiv);
+  }
 
   return card;
 }

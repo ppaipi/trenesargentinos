@@ -35,6 +35,7 @@ import androidx.core.content.ContextCompat
 import ar.chiqui.trenes.datos.Estacion
 import ar.chiqui.trenes.datos.Estaciones
 import ar.chiqui.trenes.datos.LatLon
+import ar.chiqui.trenes.datos.LineaProgramada
 import ar.chiqui.trenes.datos.Ruta
 import ar.chiqui.trenes.datos.Tren
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
@@ -154,6 +155,58 @@ fun MapaTren(tren: Tren, origen: Estacion, destino: Estacion, color: Color, oscu
             }, containerColor = MaterialTheme.colorScheme.surface) { Text("Yo", style = MaterialTheme.typography.labelSmall) }
         }
     }
+}
+
+// Mapa de una línea programada (Urquiza, Belgrano Norte): recorrido sobre
+// vías OSM y estaciones, sin tren en vivo. Cabeceras con nombre fijo.
+@SuppressLint("ClickableViewAccessibility")
+@Composable
+fun MapaLinea(ln: LineaProgramada, color: Color, oscuro: Boolean, modifier: Modifier) {
+    val ctx = LocalContext.current
+    val mapa = remember {
+        MapView(ctx).apply {
+            setTileSource(Argenmap(if (oscuro) "argenmap_oscuro" else "capabaseargenmap"))
+            setMultiTouchControls(true)
+            zoomController.setVisibility(CustomZoomButtonsController.Visibility.SHOW_AND_FADEOUT)
+            setOnTouchListener { v, e ->
+                if (e.action == MotionEvent.ACTION_DOWN) v.parent?.requestDisallowInterceptTouchEvent(true)
+                false
+            }
+            val c = color.toArgb()
+            val dp = ctx.resources.displayMetrics.density
+            val estaciones = ln.estaciones.map { LatLon(it.lat, it.lon) }
+            val linea = Estaciones.recorrido(ln.recorrido)?.takeIf { it.size > 1 } ?: estaciones
+            overlays.add(Polyline(this).apply {
+                setPoints(linea.map { it.geo })
+                outlinePaint.color = (c and 0x00FFFFFF) or (0xF2 shl 24)
+                outlinePaint.strokeWidth = 5 * dp
+                outlinePaint.strokeCap = Paint.Cap.ROUND
+                setOnClickListener { _, _, _ -> false }
+            })
+            val relleno = if (oscuro) 0xFF1A1E25.toInt() else 0xFFFFFFFF.toInt()
+            ln.estaciones.forEachIndexed { i, e ->
+                val extremo = i == 0 || i == ln.estaciones.lastIndex
+                overlays.add(Marker(this).apply {
+                    position = GeoPoint(e.lat, e.lon)
+                    title = e.nombre
+                    icon = if (extremo) etiquetaEstacion(ctx, c, relleno, e.nombre, oscuro) else circulo(ctx, c, relleno)
+                    if (extremo) setAnchor(9 * dp / icon.intrinsicWidth, 0.5f) else setAnchor(0.5f, 0.5f)
+                })
+            }
+            val caja = BoundingBox.fromGeoPoints(linea.map { it.geo }).increaseByScale(1.15f)
+            controller.setZoom(11.0)
+            controller.setCenter(caja.centerWithDateLine)
+            addOnFirstLayoutListener { _, _, _, _, _ -> zoomToBoundingBox(caja, false) }
+        }
+    }
+    DisposableEffect(Unit) {
+        mapa.onResume()
+        onDispose {
+            mapa.onPause()
+            mapa.onDetach()
+        }
+    }
+    Box(modifier) { AndroidView({ mapa }, Modifier.fillMaxSize()) }
 }
 
 // Punto azul del usuario; al llegar la ubicación encuadra al usuario y al tren.

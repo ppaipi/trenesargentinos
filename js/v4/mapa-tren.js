@@ -30,7 +30,7 @@ const ICONO_TREN =
 let recorridos = null;
 function cargarRecorridos() {
   if (!recorridos) {
-    recorridos = fetch("recorridos.json?v=4")
+    recorridos = fetch("recorridos.json?v=5")
       .then((r) => (r.ok ? r.json() : {}))
       .catch(() => ({}));
   }
@@ -45,6 +45,58 @@ function temaOscuro() {
 function colorReal(color) {
   const m = /var\((--[^)]+)\)/.exec(color);
   return m ? getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() || "#0056b3" : color;
+}
+
+// Argenmap; si falla, CARTO (y queda CARTO para los mapas siguientes).
+function capaBase(map) {
+  map.attributionControl.setPrefix(false);
+  const capa = L.tileLayer(temaOscuro() ? proveedor.oscuro : proveedor.claro, proveedor.opciones).addTo(map);
+  let errores = 0;
+  capa.on("tileerror", () => {
+    if (proveedor === ARGENMAP && ++errores >= 4) {
+      proveedor = CARTO;
+      capa.setUrl(temaOscuro() ? CARTO.oscuro : CARTO.claro);
+      L.setOptions(capa, CARTO.opciones);
+    }
+  });
+}
+
+// Mapa de una línea programada (Urquiza, Belgrano Norte): recorrido sobre
+// vías OSM y estaciones, sin tren en vivo. `estaciones`: [[nombre, lat, lon]].
+export function crearMapaLinea(contenedor, { recorrido, estaciones, color }) {
+  let map = null;
+  return {
+    async abrir() {
+      if (!window.L) return;
+      if (map) return setTimeout(() => map.invalidateSize(), 30);
+      const c = colorReal(color);
+      map = L.map(contenedor, { scrollWheelZoom: false, zoomControl: true });
+      map.on("click", () => map.scrollWheelZoom.enable());
+      capaBase(map);
+      const puntos = estaciones.map(([, lat, lon]) => [lat, lon]);
+      map.fitBounds(L.latLngBounds(puntos).pad(0.08));
+      const todos = await cargarRecorridos();
+      if (!map) return;
+      const linea = todos[recorrido]?.length > 1 ? todos[recorrido] : puntos;
+      L.polyline(linea, { color: c, weight: 5, opacity: 0.95 }).addTo(map);
+      const relleno = temaOscuro() ? "#1a1e25" : "#ffffff";
+      estaciones.forEach(([nombre, lat, lon], i) => {
+        const extremo = i === 0 || i === estaciones.length - 1;
+        L.circleMarker([lat, lon], { radius: extremo ? 6 : 3.5, color: c, weight: extremo ? 3 : 2, fillColor: relleno, fillOpacity: 1 })
+          .bindTooltip(nombre, {
+            direction: extremo ? "left" : "top",
+            offset: extremo ? [-8, 0] : [0, -5],
+            permanent: extremo,
+            className: extremo ? "mapa-etiqueta fuerte" : "mapa-etiqueta",
+          })
+          .addTo(map);
+      });
+    },
+    destruir() {
+      map?.remove();
+      map = null;
+    },
+  };
 }
 
 const d2 = (a, b) => (a[0] - b[0]) ** 2 + ((a[1] - b[1]) * 0.82) ** 2;
@@ -132,16 +184,7 @@ export function crearMapaTren(contenedor, { origen, destino, color }) {
 
   function iniciar() {
     map = L.map(contenedor, { scrollWheelZoom: false, zoomControl: true });
-    map.attributionControl.setPrefix(false);
-    const capa = L.tileLayer(temaOscuro() ? proveedor.oscuro : proveedor.claro, proveedor.opciones).addTo(map);
-    let errores = 0;
-    capa.on("tileerror", () => {
-      if (proveedor === ARGENMAP && ++errores >= 4) {
-        proveedor = CARTO;
-        capa.setUrl(temaOscuro() ? CARTO.oscuro : CARTO.claro);
-        L.setOptions(capa, CARTO.opciones);
-      }
-    });
+    capaBase(map);
     map.on("dragstart zoomstart", (e) => {
       if (e.hard !== false && map._seMueveSolo !== true) siguiendo = false;
     });

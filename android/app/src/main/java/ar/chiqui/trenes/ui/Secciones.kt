@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -156,6 +157,7 @@ private fun TarjetaProgramada(ln: LineaProgramada) {
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
     val color = Color(ln.color)
+    var mapaAbierto by rememberSaveable(ln.recorrido) { mutableStateOf(false) }
     Card(colors = CardDefaults.cardColors(containerColor = cs.surface), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -180,6 +182,13 @@ private fun TarjetaProgramada(ln: LineaProgramada) {
                 style = MaterialTheme.typography.bodySmall,
                 color = cs.primary,
             )
+            BotonSecundario(if (mapaAbierto) "Ocultar mapa" else "Ver mapa") { mapaAbierto = !mapaAbierto }
+            if (mapaAbierto) {
+                MapaLinea(
+                    ln, color, cs.surface.luminance() < 0.5f,
+                    Modifier.padding(top = 6.dp).fillMaxWidth().height(280.dp).clip(RoundedCornerShape(10.dp)),
+                )
+            }
         }
     }
 }
