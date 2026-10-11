@@ -59,10 +59,7 @@ Todo cambio va en la web y en la app Android a la vez.
 3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
-Prioridad: 5–7 (bugs) y después 12 y 15.
-5. **Coordenadas corridas** vs vías OSM: S. y Kosteki 0,8 km, Belgrano C 0,7 km, Mitre (estación)
-   1 km. Corregir con nodos `railway=station` de Overpass (como Pilar) y subir `?v=` en
-   `js/v4/estaciones.js`.
+Prioridad: 6–7 (bugs) y después 12 y 15.
 6. **Recorridos Tren de la Costa y Belgrano Sur|||Apeadero Km 12**: regenerar sumando
    `railway=light_rail` a la descarga Overpass (TdlC es light_rail). Script usado: Dijkstra
    sobre vías OSM por cada estación, orden por distancia sobre la vía desde una punta,
