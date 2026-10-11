@@ -57,3 +57,28 @@ Todo cambio va en la web y en la app Android a la vez.
    Falta: pagar cuenta Play (US$25), ficha de la tienda (ícono 512: `android/marca/trenar-icono-512.png`), prueba cerrada
    12 testers × 14 días. `programados` duplicado en `datos/Programados.kt`: actualizar ambos.
 3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
+
+## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
+Prioridad: 4–7 (bugs) y después 12 y 15.
+4. **Deep link en la app**: `am start -d "https://tapia.chiqui.ar/?o=332&d=389"` en el AVD
+   abrió con estaciones vacías. Revisar `MainActivity.abrirLink` → `vm.abrirViaje` (¿corre
+   antes de `Estaciones.cargar`?).
+5. **Coordenadas corridas** vs vías OSM: S. y Kosteki 0,8 km, Belgrano C 0,7 km, Mitre (estación)
+   1 km. Corregir con nodos `railway=station` de Overpass (como Pilar) y subir `?v=` en
+   `js/v4/estaciones.js`.
+6. **Recorridos Tren de la Costa y Belgrano Sur|||Apeadero Km 12**: regenerar sumando
+   `railway=light_rail` a la descarga Overpass (TdlC es light_rail). Script usado: Dijkstra
+   sobre vías OSM por cada estación, orden por distancia sobre la vía desde una punta,
+   penalizar vías de otra línea ×3, sacar lazos (<40 m), Douglas-Peucker 15 m. Validar: 0
+   retrocesos (>150°) y toda estación a <300 m de la polilínea.
+7. **sw.js** precachea archivos de la clásica (`/js/app.js`, `/css/style.css`…), no los de
+   index (js/v4…, css/v4…, estaciones-coords, recorridos). Actualizar lista + `CACHE_NAME`.
+8. GitHub Action que corra `herramientas/compatible.sh` en cada push (no olvidarlo).
+9. `versionCode` automático en la app (sigue en 1; Play lo exige creciente).
+10. Tests mínimos: cuenta regresiva, Torneo Chiqui (zonas), orden de cabecera (Node + JUnit).
+11. Atajos: favoritos al mantener apretado el ícono (shortcuts Android + `shortcuts` del manifest).
+12. **Widget Android** con el próximo tren de un viaje favorito (web: no aplica; ya tiene título).
+13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).
+14. Alerta si el tren seguido desaparece o suma más de X min de demora.
+15. **Modo "estoy en el andén"**: pantalla grande con la cuenta regresiva, sin apagarse
+    (Wake Lock en web, `keepScreenOn` en app), legible de lejos.
