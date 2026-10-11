@@ -14,7 +14,7 @@ document.addEventListener("keydown", (e) => e.key === "Escape" && cerrar());
 function irAlMeme() {
   location.href = `patrocinador.html${location.search}`;
 }
-$("acercaMeme").addEventListener("click", (e) => {
+for (const id of ["acercaMeme", "memeBtn"]) $(id).addEventListener("click", (e) => {
   e.preventDefault();
   irAlMeme();
 });

@@ -94,6 +94,12 @@ fun Cabecera(vm: AppVM) {
                 BotonRedondo("Avisos del servicio", translucido, onClick = { vm.abrirAvisos() }) {
                     Icon(Icons.Outlined.Notifications, "Avisos del servicio", tint = Color.White, modifier = Modifier.size(22.dp))
                 }
+                // Botón del meme: la cara del Chiqui; con borde amarillo si está activo.
+                Box(
+                    Modifier.padding(start = 48.dp).size(40.dp).clip(CircleShape)
+                        .border(if (vm.meme) 3.dp else 2.dp, if (vm.meme) Color(0xFFFFD23F) else Color.White.copy(alpha = 0.6f), CircleShape)
+                        .clickable(onClick = vm::alternarMeme),
+                ) { CaraTapia(40.dp, 0.dp) }
                 if (total > 0) {
                     val grave = vm.grupos.any { g -> g.avisos.any { it.nivel == Nivel.GRAVE } }
                     Text(
