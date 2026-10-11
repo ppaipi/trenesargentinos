@@ -1,11 +1,13 @@
 # Regenera una polilínea de recorridos.json sobre vías OSM.
-# Uso: python3 -I recorrido.py vias.json "Línea|||Ramal" PalabraDeLaLínea id1,id2,... RAIZ_REPO
+# Uso: python3 -I recorrido.py vias.json "Línea|||Ramal" PalabraDeLaLínea id1,id2,... RAIZ_REPO [coords.json]
+# coords.json opcional (por defecto RAIZ_REPO/estaciones-coords.json): {"id":[lat,lon]}. Para las
+# líneas programadas (sin ids SOFSE) se arma uno con ids 1..N desde js/v5/programados-data.js.
 # vias.json = Overpass `out geom` con railway~rail|light_rail|disused|abandoned|razed y "disused:railway".
 # Ids de estación en orden de punta a punta. Vías sin la palabra pesan x3. Imprime retrocesos y
 # distancia máxima estación-polilínea (validar: 0 y <300 m). Después subir recorridos.json?v=N.
 import json,math,heapq,sys
 ov,clave,palabra,ids,repo=sys.argv[1],sys.argv[2],sys.argv[3],[int(x) for x in sys.argv[4].split(',')],sys.argv[5]
-C=json.load(open(repo+'/estaciones-coords.json'))
+C=json.load(open(sys.argv[6] if len(sys.argv)>6 else repo+'/estaciones-coords.json'))
 def xy(p):return (p[1]*92000.0*math.cos(0)/1, p[0]*111000.0)
 def d(a,b):ax,ay=xy(a);bx,by=xy(b);return math.hypot(ax-bx,ay-by)
 G={}

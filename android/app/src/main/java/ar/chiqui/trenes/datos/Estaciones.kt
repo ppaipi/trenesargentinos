@@ -118,9 +118,13 @@ object Estaciones {
 
     /** Polilínea real sobre las vías (recorridos.json), o null si no hay. */
     @Synchronized
-    fun recorrido(ruta: Ruta): List<LatLon>? {
+    fun recorrido(ruta: Ruta): List<LatLon>? = recorrido("${ruta.linea}|||${ruta.ramal}")
+
+    /** Por clave `linea|||ramal` (también las líneas programadas). */
+    @Synchronized
+    fun recorrido(clave: String): List<LatLon>? {
         val todos = recorridos ?: JSONObject(leerAsset("recorridos.json")).also { recorridos = it }
-        val arr = todos.optJSONArray("${ruta.linea}|||${ruta.ramal}") ?: return null
+        val arr = todos.optJSONArray(clave) ?: return null
         return (0 until arr.length()).map { arr.getJSONArray(it).let { p -> LatLon(p.getDouble(0), p.getDouble(1)) } }
     }
 }
