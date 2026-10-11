@@ -22,12 +22,16 @@ import androidx.core.content.ContextCompat
 object Notificaciones {
     private const val CANAL_TREN = "tren"
     private const val CANAL_SERVICIO = "servicio"
+    private const val CANAL_PROXIMO = "proximo"
+    private const val ID_PROXIMO = 4242
     const val MINUTOS_ANTES = 5
 
     fun crearCanales(ctx: Context) {
+        if (Build.VERSION.SDK_INT < 26) return // antes de Android 8 no hay canales
         val nm = ctx.getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CANAL_TREN, "Llegada de tu tren", NotificationManager.IMPORTANCE_HIGH))
         nm.createNotificationChannel(NotificationChannel(CANAL_SERVICIO, "Avisos del servicio", NotificationManager.IMPORTANCE_DEFAULT))
+        nm.createNotificationChannel(NotificationChannel(CANAL_PROXIMO, "Próximo tren (cuenta regresiva)", NotificationManager.IMPORTANCE_LOW))
     }
 
     fun permitidas(ctx: Context) = Build.VERSION.SDK_INT < 33 ||
@@ -55,6 +59,41 @@ object Notificaciones {
             // sin permiso: no hay nada que hacer
         }
     }
+
+    /**
+     * Notificación fija con la cuenta regresiva del próximo tren, al salir de
+     * la app con una búsqueda en vivo. El cronómetro lo corre Android solo (sin
+     * servicio en segundo plano) y se borra sola un minuto después de la llegada.
+     */
+    fun mostrarProximo(ctx: Context, titulo: String, cuerpo: String, llega: Long) {
+        if (!permitidas(ctx)) return
+        val abrir = PendingIntent.getActivity(
+            ctx, 1,
+            Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE,
+        )
+        val b = NotificationCompat.Builder(ctx, CANAL_PROXIMO)
+            .setSmallIcon(R.drawable.ic_notificacion)
+            .setContentTitle(titulo)
+            .setContentText(cuerpo)
+            .setContentIntent(abrir)
+            .setOngoing(true)
+            .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setShowWhen(true)
+            .setWhen(llega)
+            .setTimeoutAfter(maxOf(1000L, llega - System.currentTimeMillis() + 60_000))
+        // Cronómetro hacia atrás desde Android 7; antes queda la hora de llegada.
+        if (Build.VERSION.SDK_INT >= 24) b.setUsesChronometer(true).setChronometerCountDown(true)
+        val n = b.build()
+        try {
+            NotificationManagerCompat.from(ctx).notify(ID_PROXIMO, n)
+        } catch (e: SecurityException) {
+            // sin permiso: no hay nada que hacer
+        }
+    }
+
+    fun quitarProximo(ctx: Context) = NotificationManagerCompat.from(ctx).cancel(ID_PROXIMO)
 
     private fun intentAlarma(ctx: Context, clave: String, titulo: String = "", cuerpo: String = "") = PendingIntent.getBroadcast(
         ctx,

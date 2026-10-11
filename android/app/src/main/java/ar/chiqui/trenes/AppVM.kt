@@ -4,6 +4,9 @@ import android.app.Application
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
+import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -109,7 +112,8 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     init {
         val cm = ctx.getSystemService(ConnectivityManager::class.java)
         online = cm.activeNetwork != null
-        cm.registerDefaultNetworkCallback(red)
+        if (Build.VERSION.SDK_INT >= 24) cm.registerDefaultNetworkCallback(red)
+        else cm.registerNetworkCallback(NetworkRequest.Builder().addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).build(), red) // Android 6
         viewModelScope.launch {
             withContext(Dispatchers.IO) { Estaciones.cargar(ctx) }
             listo = true
@@ -130,6 +134,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     fun alVolver() {
         enPrimerPlano = true
+        Notificaciones.quitarProximo(ctx)
         reloj?.cancel()
         reloj = viewModelScope.launch {
             while (isActive) {
@@ -144,6 +149,18 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     fun alSalir() {
         enPrimerPlano = false
+        // Cuenta regresiva del próximo tren en una notificación fija (en la web:
+        // el título de la pestaña).
+        val o = origen
+        val d = destino
+        val t = trenes.firstOrNull { it.referencia > System.currentTimeMillis() }
+        if (activo && !programado && o != null && d != null && t != null) {
+            Notificaciones.mostrarProximo(
+                ctx, "Próximo tren a ${d.nombre}",
+                "${t.ramal} · desde ${o.nombre} · ${hora(t.referencia)}${t.anden?.let { " · Andén $it" } ?: ""}",
+                t.referencia,
+            )
+        }
         reloj?.cancel()
         sondeo?.cancel()
         cicloAvisos?.cancel()
@@ -189,15 +206,34 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     /* ---------- Selección ---------- */
 
+    /** Cartel flotante al elegir una estación: el aviso más grave de sus líneas. */
+    data class AvisoEstacion(val linea: String, val aviso: Aviso, val total: Int)
+    var avisoEstacion by mutableStateOf<AvisoEstacion?>(null)
+    private var timerAviso: Job? = null
+
+    // Avisos generales de las líneas de la estación o de esa estación; se va
+    // solo a los 5 s (igual que la web).
+    private fun mostrarAvisosDe(e: Estacion) {
+        val lineas = e.rutas.map { it.linea }.toSet()
+        val lista = grupos.filter { it.linea in lineas }
+            .flatMap { g -> g.avisos.filter { it.estacionId == null || it.estacionId == e.id }.map { g.linea to it } }
+            .sortedBy { it.second.criticidad }
+        timerAviso?.cancel()
+        avisoEstacion = lista.firstOrNull()?.let { (l, a) -> AvisoEstacion(l, a, lista.size) }
+        if (avisoEstacion != null) timerAviso = viewModelScope.launch { delay(5000); avisoEstacion = null }
+    }
+
     // La estación recién elegida manda: si la otra no comparte ramal se
     // borra sin avisar (la pantalla pide elegirla de nuevo).
     fun elegirOrigen(e: Estacion) {
         origen = e
+        mostrarAvisosDe(e)
         if (destino?.let { Estaciones.rutaCompartida(e, it) } == null) destino = null
     }
 
     fun elegirDestino(e: Estacion) {
         destino = e
+        mostrarAvisosDe(e)
         if (origen?.let { Estaciones.rutaCompartida(it, e) } == null) origen = null
     }
 
@@ -516,7 +552,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     fun intentCompartir(): Intent? {
         val o = origen ?: return null
         val d = destino ?: return null
-        val url = "https://tapia.chiqui.ar/v5.html?o=${o.id}&d=${d.id}"
+        val url = "https://tapia.chiqui.ar/?o=${o.id}&d=${d.id}"
         val texto = "¿Cuándo llega el tren de ${o.nombre} a ${d.nombre}? Miralo en TrenAR: $url"
         return Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, texto), null)
     }

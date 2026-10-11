@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "ar.chiqui.trenes"
-        minSdk = 26
+        minSdk = 23 // Android 6: lo que no existe ahí se oculta (ver Build.VERSION en el código)
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -48,6 +48,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true // java.time en Android 6/7
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
@@ -85,4 +86,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("org.osmdroid:osmdroid-android:6.1.20")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.2")
 }

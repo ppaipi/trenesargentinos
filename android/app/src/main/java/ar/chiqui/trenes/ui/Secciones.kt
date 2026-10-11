@@ -45,7 +45,7 @@ import ar.chiqui.trenes.datos.LINEAS_PROGRAMADAS
 import ar.chiqui.trenes.datos.LineaProgramada
 import ar.chiqui.trenes.datos.Nivel
 
-private fun colorNivel(n: Nivel, primario: Color) = when (n) {
+internal fun colorNivel(n: Nivel, primario: Color) = when (n) {
     Nivel.GRAVE -> ColorGrave
     Nivel.MEDIO -> ColorDemora
     Nivel.INFO -> primario
@@ -120,7 +120,7 @@ fun PanelAcerca(onCerrar: () -> Unit) {
             )
             Text(
                 "tapia.chiqui.ar",
-                Modifier.clickable { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://tapia.chiqui.ar/v5.html"))) },
+                Modifier.clickable { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://tapia.chiqui.ar/"))) },
                 color = cs.primary,
                 fontWeight = FontWeight.SemiBold,
             )

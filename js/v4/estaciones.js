@@ -47,7 +47,7 @@ function ordenarGeografico(lista) {
 }
 
 export async function cargarEstaciones() {
-  const [resEst, resCoords] = await Promise.all([fetch("estaciones.json"), fetch("estaciones-coords.json?v=3")]);
+  const [resEst, resCoords] = await Promise.all([fetch("estaciones.json"), fetch("estaciones-coords.json?v=4")]);
   if (!resEst.ok) throw new Error("Error al cargar estaciones: " + resEst.status);
   estaciones = await resEst.json();
   const coords = resCoords.ok ? await resCoords.json().catch(() => ({})) : {};

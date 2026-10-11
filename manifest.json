@@ -1,25 +1,38 @@
 {
-  "name": "Trenes Argentinos - Horarios en tiempo real",
-  "short_name": "Trenes Arg",
+  "name": "TrenAR · Tu tren, en vivo",
+  "short_name": "TrenAR",
   "description": "Consultá en tiempo real cuándo llega tu tren y cuánto dura el viaje.",
-  "start_url": "/index.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#66a6ff",
-  "theme_color": "#0056b3",
+  "theme_color": "#0B2547",
   "lang": "es-AR",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "img/trenar-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "tren.png",
+      "src": "img/trenar-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "img/trenar-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/v6.html",
+  "shortcuts": [
+    {
+      "name": "TrenAR · Tu tren, en vivo",
+      "url": "/gps.html"
     }
   ]
 }

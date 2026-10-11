@@ -144,3 +144,23 @@
 }
 .leaflet-bar.control-yo svg { width: 20px; height: 20px; }
 .leaflet-bar.control-yo:hover { color: #2b7bff; }
+
+/* Cartel flotante al elegir una estación (5 s; tocarlo abre los avisos) */
+.aviso-estacion {
+  position: fixed; top: 12px; left: 50%; z-index: 1200;
+  width: min(440px, calc(100% - 32px));
+  display: flex; align-items: flex-start; gap: 4px;
+  background: var(--card); border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(16, 40, 80, 0.25);
+  cursor: pointer;
+  transform: translate(-50%, calc(-100% - 20px)); opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+}
+.aviso-estacion.visible { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.aviso-estacion .aviso-estacion-item { flex: 1; margin: 0; list-style: none; }
+.aviso-estacion .aviso-mas { display: block; margin-top: 4px; font-size: 0.78rem; font-weight: 600; color: var(--azul); }
+.aviso-estacion .aviso-cerrar { flex: none; margin: 4px; }
+.aviso-estacion .aviso-item > span:not(.aviso-linea):not(.aviso-mas) {
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}

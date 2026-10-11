@@ -51,6 +51,7 @@ object Api {
         try {
             c.connectTimeout = TIMEOUT_MS
             c.readTimeout = TIMEOUT_MS
+            c.setRequestProperty("User-Agent", "TrenAR/1.0") // sin modelo de teléfono ni versión de Android
             auth?.let { c.setRequestProperty("Authorization", it) }
             if (cuerpo != null) {
                 c.requestMethod = "POST"

@@ -537,3 +537,9 @@ input:focus { border-color: var(--azul); background: var(--card); outline: none;
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Cambio de ramal con un toque en el buscador (el elegido, pintado) */
+.chip-ramal { box-shadow: inset 4px 0 0 var(--color-ramal); }
+.chip-ramal.activo { background: var(--azul); color: #fff; box-shadow: none; font-weight: 600; }
+:root[data-theme="dark"] .chip-ramal.activo { color: #0b1220; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .chip-ramal.activo { color: #0b1220; } }

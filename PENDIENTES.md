@@ -3,38 +3,24 @@
 Sitio estático en GitHub Pages (deploy desde `main`, dominio `tapia.chiqui.ar` por CNAME).
 Push: `git push git@github.com:ppaipi/trenesargentinos.git HEAD:main` (HTTPS no tiene credenciales).
 
-## Regla de versiones
-Cada cambio importante va en una versión nueva (`vN.html` + `js/vN/` + `css/vN*.css`),
-sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
+## Estructura
+Todo vive en `index.html` (se terminaron las vN). `clasica.html` = la versión vieja.
+`v4.html`–`v6.html` solo redirigen a `/` (links compartidos y PWA instaladas); v1–v3 borrados.
+Código: `js/v4/` (app, buscador, avisos, mapa…), `js/v5/` (líneas programadas), `js/v6/marca.js`;
+CSS `css/v4*.css`, `css/v5-programados.css`, `css/v6-marca.css`, `css/patrocinio.css`.
+`patrocinador.html` = página del meme (Sancord + Chiqui). `manifest.json` (start_url `/`).
+- Marca **TrenAR**: logo en `img/trenar-*.png`; meme con el botón del ojo o 5 toques al logo
+  (localStorage `trenAR.meme`).
+- **Navegadores viejos** (sin `?.`/`??`): index.html carga `js/compat/` (misma app compilada a
+  2017: Chrome 55, Safari 11, Firefox 57). **Después de tocar `js/` correr
+  `herramientas/compatible.sh`** (esbuild + `herramientas/polyfills.js`). `?compat=1` la fuerza.
 
-## Versiones
-- `index.html` — clásica (sin tocar).
-- `v1.html` — rediseño estilo cartel de andén (LED ámbar), favoritos, cercanas, avisos 5 min.
-- `v2.html` — diseño cálido (Inter, celeste), mapa en vivo compartido, estado del servicio.
-- `v3.html` — Mapa individual por tarjeta con recorrido real sobre las vías
-  (`recorridos.json`), ícono de tren, avisos solo por campana o cuando no hay trenes,
-  botón "?" → patrocinador.
-- `v4.html` — **actual**. v3 + punto azul del usuario en el mapa (botón "mi ubicación",
-  `js/v4/ubicacion.js`, sin pedir permiso hasta tocarlo), último resultado guardado
-  por viaje (se muestra mientras carga, 45 min), sentido "hacia X" en cada tarjeta,
-  tema claro por defecto.
-- `v5.html` — v4 + sección "Otras líneas (horario programado)" para
-  Urquiza (Metrovías) y Belgrano Norte (Ferrovías): no las opera SOFSE, no hay
-  arribos en vivo. Muestra cabeceras/frecuencia según horario oficial, etiqueta
-  "programado · no en vivo" y link a la fuente (modelo anden.app: `scheduled`).
-  Datos en `js/v5/programados-data.js`, lógica en `js/v5/programados.js`, estilos
-  en `css/v5-programados.css`. Reusa `js/v4/app.js` sin tocarlo.
-- `v6.html` — **actual**. v5 + marca **TrenAR**: logo (ilustración Obelisco/andén,
-  `android/marca/trenar-logo-original.png`, íconos en `img/trenar-*.png`), wordmark
-  "Tren" + pastilla "AR", `manifest-v6.json`. El "?" abre "Acerca de"; el meme tiene botón propio (ojo, al lado de
-  la campana) o 5 toques al logo: se guarda en localStorage `trenAR.meme` y al recargar
-  v6 carga `js/v4/patrocinio.js` antes que app.js (sin redirigir).
-  Estilos `css/v6-marca.css`, lógica `js/v6/marca.js`. Misma marca que la app Android.
-- `patrocinador.html` — v4 + patrocinio meme "Sancord/Sancor Seguros" (re molesto) y
-  Chiqui Tapia ("No trates de entenderla, disfrutala"). Lógica en `js/v4/patrocinio.js`,
-  estilos en `css/patrocinio.css`. Imágenes: `img/patrocinador.png` (logo que dio el
-  usuario), `img/tapia.png` (Wikimedia Commons, Ministerio de Cultura, CC BY-SA 2.0,
-  crédito en el pie).
+## Paridad web == app
+Todo cambio va en la web y en la app Android a la vez.
+- Buscador: chips de ramal + "Otras líneas" + Torneo Chiqui (meme: ramal en Zona A/B).
+- Cartel al elegir estación con el aviso más grave de su línea (5 s; tocarlo abre los avisos).
+- Cuenta regresiva del próximo tren: título de la pestaña (web) / notificación fija con
+  cronómetro al salir de la app (Android 7+; en Android 6 muestra la hora).
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -43,7 +29,11 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
 - `estaciones-coords.json`: coords de OSM (sin subte) + manuales. Las 252 tienen coords
   (ramal Puente Alsina y H. Yrigoyen salen de nodos `disused:railway` de OSM).
 - `recorridos.json`: polilínea por `linea|||ramal`, Dijkstra sobre vías OSM + red ADIF
-  (datos.transporte.gob.ar). San Martín tiene algún tramo recto (corte en los datos).
+  (datos.transporte.gob.ar). Regenerado (oct 2026) con vías OSM (Overpass, rail+disused) +
+  Dijkstra por cada estación (orden por distancia sobre la vía desde una punta), vías de la
+  propia línea preferidas, sin lazos ida-y-vuelta. Tren de la Costa y Apeadero Km 12 quedaron
+  con el viejo (TdlC es `light_rail` en OSM). Al cambiarlo,
+  subir `recorridos.json?v=N` en `js/v4/mapa-tren.js`.
 - Mapa base: Argenmap (IGN, TMS) con respaldo CARTO.
 
 ## Pendientes
@@ -55,6 +45,7 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
    Horario N° 21 (punta a punta, frecuencia desde Retiro). Al cambiar un horario
    (ej. Urquiza verano), re-parsear el PDF nuevo con `pdftotext -layout`.
 2. App Android nativa **TrenAR** (Kotlin + Compose) en `android/`, paquete `ar.chiqui.trenes`.
+   minSdk 23 (Android 6) con desugaring de java.time; probada en AVD `android6`. User-Agent `TrenAR/1.0`.
    Íconos: `cd android/marca && python3 -I generar_icono.py` (desde el logo original).
    Igual a v5 (sin patrocinio): buscador, arribos en vivo, favoritos, cercanas, mapa
    osmdroid + Argenmap con recorrido real, avisos, líneas programadas (plegadas).

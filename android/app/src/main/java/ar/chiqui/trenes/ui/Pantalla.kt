@@ -89,6 +89,7 @@ fun App(vm: AppVM) {
                 Box(Modifier.weight(1f)) { Pantalla(vm) }
             }
             if (vm.meme) CapasMeme(festejo) { festejo = null }
+            CartelAvisoEstacion(vm.avisoEstacion, onAbrir = { vm.avisoEstacion = null; vm.abrirAvisos(it) }) { vm.avisoEstacion = null }
         }
         if (vm.panelAvisos) PanelAvisos(vm.grupos, vm.lineaPrimero) { vm.panelAvisos = false }
         if (vm.panelAcerca) PanelAcerca { vm.panelAcerca = false }

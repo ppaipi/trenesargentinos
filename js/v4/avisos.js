@@ -103,6 +103,51 @@ export function avisosDelViaje(origen, destino, linea) {
   return g.avisos.filter((a) => a.estacionId == null || ids.has(a.estacionId));
 }
 
+/** Avisos de las lineas de una estacion (generales o de esa estacion), el mas grave primero. */
+export function avisosDeEstacion(estacion) {
+  const lineas = new Set(estacion.rutas.map((r) => r.linea));
+  return datos
+    .filter((g) => lineas.has(g.linea))
+    .flatMap((g) => g.avisos.filter((a) => a.estacionId == null || a.estacionId === estacion.id).map((a) => ({ linea: g.linea, aviso: a })))
+    .sort((x, y) => x.aviso.criticidad - y.aviso.criticidad);
+}
+
+// Cartel flotante arriba al elegir una estacion: el aviso mas grave de sus
+// lineas. Se va solo a los 5 s; tocarlo abre el panel de avisos. Igual que la app.
+let timerCartel;
+export function mostrarAvisoEstacion(estacion) {
+  let cartel = document.getElementById("avisoEstacion");
+  if (!cartel) {
+    cartel = document.createElement("div");
+    cartel.id = "avisoEstacion";
+    cartel.className = "aviso-estacion";
+    cartel.setAttribute("role", "status");
+    cartel.setAttribute("aria-live", "polite");
+    document.body.appendChild(cartel);
+  }
+  clearTimeout(timerCartel);
+  const lista = avisosDeEstacion(estacion);
+  if (!lista.length) return cartel.classList.remove("visible");
+
+  const { linea, aviso } = lista[0];
+  const item = itemAviso(aviso, linea);
+  item.classList.add("aviso-estacion-item");
+  if (lista.length > 1) item.append(Object.assign(document.createElement("span"), { className: "aviso-mas", textContent: `+${lista.length - 1} avisos` }));
+  const cerrar = Object.assign(document.createElement("button"), { type: "button", className: "boton-icono aviso-cerrar", textContent: "✕" });
+  cerrar.setAttribute("aria-label", "Cerrar");
+  cerrar.addEventListener("click", (e) => {
+    e.stopPropagation();
+    cartel.classList.remove("visible");
+  });
+  cartel.replaceChildren(item, cerrar);
+  cartel.onclick = () => {
+    cartel.classList.remove("visible");
+    abrirPanelAvisos(linea);
+  };
+  cartel.classList.add("visible");
+  timerCartel = setTimeout(() => cartel.classList.remove("visible"), 5000);
+}
+
 export function renderAvisosViaje(contenedor, origen, destino, linea) {
   const lista = origen && destino ? avisosDelViaje(origen, destino, linea) : [];
   contenedor.replaceChildren(...lista.map((a) => itemAviso(a, linea)));

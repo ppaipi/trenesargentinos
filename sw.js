@@ -1,4 +1,4 @@
-const CACHE_NAME = "trenes-arg-v2";
+const CACHE_NAME = "trenes-arg-v3";
 const ARCHIVOS_PRECACHE = [
   "/index.html",
   "/gps.html",
@@ -61,7 +61,7 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((lista) => {
       const abierta = lista.find((c) => "focus" in c);
-      return abierta ? abierta.focus() : self.clients.openWindow("/v1.html");
+      return abierta ? abierta.focus() : self.clients.openWindow("/");
     })
   );
 });

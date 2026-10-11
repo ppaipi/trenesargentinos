@@ -58,32 +58,79 @@ export function crearBuscadorEstacion({ input, panel, chips, lista, obtenerOtra,
 
     items.slice(0, 60).forEach((item, i) => {
       const estacion = item.estacion || item;
-      const li = document.createElement("li");
-      li.setAttribute("role", "option");
-
-      const badge = document.createElement("span");
-      badge.className = "badge-linea";
-      badge.style.background = colorDeEstacion(estacion);
-      badge.title = lineasDeEstacion(estacion);
-
-      const nombre = document.createElement("span");
-      nombre.className = "nombre-estacion";
-      nombre.textContent = numerar ? `${i + 1}. ${estacion.nombre}` : estacion.nombre;
-
-      const extra = document.createElement("span");
-      extra.className = "linea-nombre";
-      extra.style.marginLeft = "auto";
-      extra.textContent = detalle ? detalle(item) : lineasDeEstacion(estacion);
-
-      li.append(badge, nombre, extra);
-      li.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        seleccionar(estacion);
-      });
-      lista.appendChild(li);
+      const texto = numerar ? `${i + 1}. ${estacion.nombre}` : estacion.nombre;
+      lista.appendChild(filaEstacion(estacion, texto, detalle ? detalle(item) : lineasDeEstacion(estacion)));
     });
     abrir();
+  }
+
+  function filaEstacion(estacion, texto, detalle) {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+
+    const badge = document.createElement("span");
+    badge.className = "badge-linea";
+    badge.style.background = colorDeEstacion(estacion);
+    badge.title = lineasDeEstacion(estacion);
+
+    const nombre = document.createElement("span");
+    nombre.className = "nombre-estacion";
+    nombre.textContent = texto;
+
+    const extra = document.createElement("span");
+    extra.className = "linea-nombre";
+    extra.style.marginLeft = "auto";
+    extra.textContent = detalle;
+
+    li.append(badge, nombre, extra);
+    li.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      seleccionar(estacion);
+    });
+    return li;
+  }
+
+  // Meme del torneo de 30 equipos en 2 zonas de 15: el ramal se parte en
+  // "Zona A" y "Zona B" de n/2 estaciones, salteadas (no trates de entenderlo).
+  // Si n es impar, la que sobra "asciende por escritorio". Igual que la app.
+  function renderZonas(items) {
+    prepararVista(true);
+    const n = items.length;
+    const mitad = Math.floor(n / 2);
+    const zonaA = items.filter((_, i) => i % 2 === 0).slice(0, mitad);
+    const zonaB = items.filter((_, i) => i % 2 === 1).slice(0, mitad);
+    const escritorio = items.find((e) => !zonaA.includes(e) && !zonaB.includes(e));
+
+    const cabecera = document.createElement("li");
+    cabecera.className = "torneo-cabecera";
+    const cara = Object.assign(document.createElement("img"), { src: "img/tapia.png", alt: "", width: 44, height: 44 });
+    const texto = document.createElement("span");
+    texto.textContent =
+      `Torneo Chiqui: ${n} estaciones, 2 zonas de ${mitad}.` +
+      (escritorio ? ` ${escritorio.nombre} asciende por escritorio.` : "") +
+      " No trates de entenderlo.";
+    cabecera.append(cara, texto);
+    lista.appendChild(cabecera);
+
+    const titulo = (t) => lista.appendChild(Object.assign(document.createElement("li"), { className: "torneo-zona", textContent: t }));
+    titulo(`ZONA A · ${mitad} estaciones`);
+    zonaA.forEach((e) => lista.appendChild(filaEstacion(e, e.nombre, "Zona A")));
+    titulo(`ZONA B · ${mitad} estaciones`);
+    zonaB.forEach((e) => lista.appendChild(filaEstacion(e, e.nombre, "Zona B")));
+    if (escritorio) {
+      titulo("ASCENSO POR ESCRITORIO");
+      lista.appendChild(filaEstacion(escritorio, escritorio.nombre, "Invitada"));
+    }
+    abrir();
+  }
+
+  // Chip "Otras líneas": vuelve a la lista de líneas desde cualquier vista.
+  function chipOtrasLineas(volverA) {
+    chips.appendChild(boton("Otras líneas", "chip", () => {
+      pila.push(volverA);
+      mostrarLineas();
+    }));
   }
 
   function renderChips(opciones, etiqueta, alElegir, color) {
@@ -135,12 +182,26 @@ export function crearBuscadorEstacion({ input, panel, chips, lista, obtenerOtra,
       },
       (r) => COLOR_LINEA[r.linea]
     );
+    chipOtrasLineas(() => mostrarRamalesDe(otra));
   }
 
   function mostrarEstaciones(linea, ramal) {
     const otra = obtenerOtra();
     const items = estacionesDeRuta(linea, ramal).filter((e) => !otra || e.id !== otra.id);
-    renderEstaciones(items, { detalle: () => "" });
+    if (document.body.dataset.patrocinio && items.length >= 4) renderZonas(items);
+    else renderEstaciones(items, { detalle: () => "" });
+
+    // Fila fija: los ramales de la línea (el elegido primero) para cambiar
+    // con un toque, sin volver atrás, y "Otras líneas". Igual que la app.
+    const ramales = ramalesDeLinea(linea);
+    if (ramales.length > 1) {
+      [ramal, ...ramales.filter((r) => r !== ramal)].forEach((r) => {
+        const chip = boton(r, r === ramal ? "chip chip-ramal activo" : "chip chip-ramal", () => mostrarEstaciones(linea, r));
+        chip.style.setProperty("--color-ramal", COLOR_LINEA[linea] || "var(--azul)");
+        chips.appendChild(chip);
+      });
+    }
+    chipOtrasLineas(() => mostrarEstaciones(linea, ramal));
   }
 
   function volver() {
@@ -173,7 +234,7 @@ export function crearBuscadorEstacion({ input, panel, chips, lista, obtenerOtra,
   });
 
   input.addEventListener("keydown", (e) => {
-    const items = lista.querySelectorAll("li:not(.sin-resultados)");
+    const items = lista.querySelectorAll("li[role=option]");
     if (panel.classList.contains("ocultar") || items.length === 0) return;
 
     if (e.key === "ArrowDown") activo = (activo + 1) % items.length;
@@ -205,6 +266,7 @@ export function crearBuscadorEstacion({ input, panel, chips, lista, obtenerOtra,
         className: "linea-nombre",
         textContent: "Estaciones cerca tuyo",
       }));
+      chipOtrasLineas(() => this.mostrarCercanas(items));
     },
   };
 }

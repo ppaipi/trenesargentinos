@@ -7,9 +7,11 @@ import {
   COLOR_LINEA,
 } from "./estaciones.js";
 import { crearBuscadorEstacion } from "./buscador.js";
-import { crearTarjeta, skeletons, mensaje, hora } from "./tarjetas.js";
+import { crearTarjeta, skeletons, mensaje, hora, cuentaRegresiva } from "./tarjetas.js";
+
+const TITULO = document.title;
 import * as extras from "./extras.js";
-import { iniciarAvisos, avisosDelViaje, abrirPanelAvisos } from "./avisos.js";
+import { iniciarAvisos, avisosDelViaje, abrirPanelAvisos, mostrarAvisoEstacion } from "./avisos.js";
 
 const INTERVALO_SONDEO_MS = 15000; // la API se consulta cada 15 s; la cuenta regresiva corre local cada 1 s
 const AVISO_MINUTOS = 5;
@@ -71,6 +73,7 @@ function fijarEstacion(cual, estacion) {
 function alSeleccionar(cual, otra) {
   return (estacion) => {
     estado[cual] = estacion;
+    if (estacion) mostrarAvisoEstacion(estacion);
     if (estacion && estado[otra] && !rutaCompartida(estacion, estado[otra])) {
       fijarEstacion(otra, null);
       extras.toast("Esas estaciones no comparten ramal: elegí otra.");
@@ -204,6 +207,8 @@ function detener() {
   estado.activo = false;
   clearTimeout(timerSondeo);
   clearInterval(timerTick);
+  estado.proximos = [];
+  document.title = TITULO;
 }
 
 function buscar() {
@@ -289,6 +294,7 @@ async function consultar(programada) {
 }
 
 function render(trenes, programada) {
+  estado.proximos = programada ? [] : trenes;
   const ruta = rutaCompartida(estado.origen, estado.destino);
   const linea = ruta?.linea;
   const vistos = new Set();
@@ -354,8 +360,21 @@ function ubicarEnOrden(div, anterior) {
   else resultDiv.prepend(div);
 }
 
+// Cuenta regresiva del próximo tren en el título de la pestaña, para verla
+// desde otra pestaña (en la app: notificación fija).
+function actualizarTitulo(ahora) {
+  const t = estado.activo && estado.modo === "vivo" && (estado.proximos || []).find((x) => x.referencia > ahora - 60000);
+  if (!t) {
+    document.title = TITULO;
+    return;
+  }
+  const c = cuentaRegresiva(t.referencia, ahora);
+  document.title = `${c.ya ? "YA en andén" : c.num} · ${estado.origen.nombre} → ${estado.destino.nombre}`;
+}
+
 function tick() {
   const ahora = Date.now();
+  actualizarTitulo(ahora);
   for (const t of tarjetas.values()) {
     t.tick(ahora);
     revisarAviso(t, ahora);

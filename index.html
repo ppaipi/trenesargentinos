@@ -1,83 +1,84 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
-  <link rel="icon" href="Tren.ico" type="image/x-icon">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0056b3">
   <meta charset="UTF-8">
-  <meta name="geo.region" content="AR-BUE" /> <!-- Buenos Aires, Argentina -->
-  <meta name="geo.placename" content="Buenos Aires" />
-  <meta name="geo.position" content="-34.6037;-58.3816" />
-  <meta name="google-site-verification" content="pgIVSgq4strcU9SEKpVIDdnZhGr3G9i1tDci9Un9KUU" />
-  <meta name="description" content="Consultá en tiempo real cuándo llega tu tren y cuánto dura el viaje. Horarios actualizados de Mitre, Sarmiento, Roca, San Martín, Belgrano Sur y Tren de la Costa.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0B2547">
+  <meta name="description" content="Consultá en tiempo real cuándo llega tu tren, demoras, andén y cuánto dura el viaje. Mitre, Sarmiento, Roca, San Martín, Belgrano Sur y Tren de la Costa.">
+  <link rel="icon" href="img/trenar-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="img/trenar-192.png">
+  <link rel="manifest" href="manifest.json">
   <link rel="canonical" href="https://tapia.chiqui.ar/">
-
   <meta property="og:type" content="website">
   <meta property="og:locale" content="es_AR">
-  <meta property="og:url" content="https://tapia.chiqui.ar/">
-  <meta property="og:title" content="¿Cuándo llega tu tren? | Trenes Argentinos">
-  <meta property="og:description" content="Horarios en tiempo real para todas las líneas del Gran Buenos Aires: cuándo llega tu tren y cuánto dura el viaje.">
-  <meta property="og:image" content="https://tapia.chiqui.ar/tren.png">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="¿Cuándo llega tu tren? | Trenes Argentinos">
-  <meta name="twitter:description" content="Horarios en tiempo real para todas las líneas del Gran Buenos Aires.">
-
-  <title>¿Cuándo llega tu tren? Horarios en vivo - Trenes Argentinos</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Trenes Argentinos - Horarios en tiempo real",
-    "url": "https://tapia.chiqui.ar/",
-    "applicationCategory": "TravelApplication",
-    "operatingSystem": "Web",
-    "description": "Consultá en tiempo real cuándo llega tu tren y cuánto dura el viaje, para todas las líneas del Gran Buenos Aires."
-  }
-  </script>
+  <meta property="og:title" content="TrenAR · Tu tren, en vivo">
+  <meta property="og:description" content="Horarios en vivo, demoras y andén para todas las líneas del AMBA.">
+  <meta property="og:image" content="https://tapia.chiqui.ar/img/trenar-512.png">
+  <title>TrenAR · ¿Cuándo llega tu tren? Horarios en vivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="css/v4.css">
+  <link rel="stylesheet" href="css/v4-avisos-mapa.css">
+  <link rel="stylesheet" href="css/v5-programados.css">
+  <link rel="stylesheet" href="css/patrocinio.css">
+  <link rel="stylesheet" href="css/v6-marca.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
-  <header>
-    <h1>¿Cuándo llega tu tren?</h1>
-    <p class="subtitulo">Horarios en tiempo real de Mitre, Sarmiento, Roca, San Martín, Belgrano Sur y Tren de la Costa.</p>
+  <header class="cabecera">
+    <div class="cabecera-fila">
+      <h1 class="marca"><img id="marcaLogo" class="marca-logo" src="img/trenar-192.png" alt="" width="40" height="40"><span class="marca-tren">Tren</span><span class="marca-ar">AR</span></h1>
+      <button id="campanaBtn" class="boton-icono campana" type="button" aria-label="Avisos del servicio" title="Avisos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="campanaBadge" class="campana-badge ocultar"></span></button>
+      <button id="memeBtn" class="boton-icono boton-meme" type="button" aria-pressed="false" title="Disfrutala" aria-label="Modo patrocinio (meme)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      <button id="acercaBtn" class="boton-icono ayuda" type="button" title="Acerca de TrenAR" aria-label="Acerca de TrenAR">?</button>
+      <button id="temaBtn" class="boton-icono" type="button" aria-label="Cambiar tema claro/oscuro" title="Tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    </div>
+    <p class="marca-pregunta">¿Cuándo llega tu tren?</p>
+    <p class="subtitulo">Horarios en vivo, demoras y andén de todas las líneas del AMBA.</p>
   </header>
 
-  <main>
-    <div id="loginStatus"><span class="spinner"></span> Autenticando...</div>
+  <div id="avisoOffline" class="aviso ocultar" role="status">Sin conexión. Los horarios se actualizan cuando vuelva internet.</div>
 
-    <div id="menu" style="display: none;">
-      <div id="ultimaBusqueda" class="ocultar"></div>
+  <main>
+    <div id="loginStatus" role="status"><span class="spinner"></span> Conectando con Trenes Argentinos...</div>
+
+    <div id="menu" hidden>
+
+      <section id="favoritos" class="favoritos ocultar" aria-label="Viajes guardados">
+        <h2 class="titulo-seccion">Tus viajes</h2>
+        <div id="favoritosLista" class="favoritos-lista"></div>
+      </section>
 
       <div class="tarjeta-busqueda">
-        <div class="modo-busqueda">
-          <button type="button" class="modo-chip activo" data-modo="vivo">En vivo</button>
-          <button type="button" class="modo-chip" data-modo="programada">Programar viaje</button>
+        <div class="modo-busqueda" role="tablist">
+          <button type="button" class="modo-chip activo" data-modo="vivo" role="tab" aria-selected="true">En vivo</button>
+          <button type="button" class="modo-chip" data-modo="programada" role="tab" aria-selected="false">Programar viaje</button>
         </div>
 
         <div class="campo-busqueda">
-          <label for="origin-input">Estación de Origen</label>
-          <input type="text" id="origin-input" autocomplete="off" placeholder="Escribí o elegí por línea...">
+          <label for="origin-input">Desde</label>
+          <div class="fila-input">
+            <input type="text" id="origin-input" autocomplete="off" placeholder="Estación de origen" enterkeyhint="next">
+            <button id="cercanaBtn" class="boton-icono boton-gps" type="button" title="Usar la estación más cercana" aria-label="Usar la estación más cercana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></button>
+          </div>
           <div id="origin-panel" class="panel-busqueda ocultar">
             <div id="origin-chips" class="chips-fila"></div>
-            <ul id="origin-list" class="autocomplete-list"></ul>
+            <ul id="origin-list" class="autocomplete-list" role="listbox"></ul>
           </div>
         </div>
 
         <div class="fila-swap">
-          <button id="botonEspecial" type="button" title="Intercambiar origen y destino"><b>⇅</b></button>
+          <button id="swapBtn" type="button" title="Intercambiar origen y destino" aria-label="Intercambiar origen y destino">⇅</button>
         </div>
 
         <div class="campo-busqueda">
-          <label for="destination-input">Estación de Destino</label>
-          <input type="text" id="destination-input" autocomplete="off" placeholder="Escribí o elegí por ramal...">
+          <label for="destination-input">Hasta</label>
+          <input type="text" id="destination-input" autocomplete="off" placeholder="Estación de destino" enterkeyhint="search">
           <div id="destination-panel" class="panel-busqueda ocultar">
             <div id="destination-chips" class="chips-fila"></div>
-            <ul id="destination-list" class="autocomplete-list"></ul>
+            <ul id="destination-list" class="autocomplete-list" role="listbox"></ul>
           </div>
         </div>
 
@@ -92,14 +93,88 @@
           </div>
         </div>
 
-        <button id="buscarBtn" type="button" disabled>Buscar Horarios</button>
+        <button id="buscarBtn" class="boton-principal" type="button" disabled>Buscar horarios</button>
       </div>
     </div>
+
+    <section id="resultado" class="ocultar" aria-live="polite">
+      <div class="resultado-cabecera">
+        <div>
+          <h2 id="trayecto" class="trayecto"></h2>
+          <p id="estadoActualizacion" class="estado-actualizacion"></p>
+        </div>
+        <div class="resultado-acciones">
+          <button id="favBtn" class="boton-icono" type="button" aria-pressed="false" title="Guardar viaje" aria-label="Guardar viaje">☆</button>
+          <button id="compartirBtn" class="boton-icono" type="button" title="Compartir" aria-label="Compartir viaje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg></button>
+        </div>
+      </div>
+      <div id="result"></div>
+    </section>
+
+    <section id="programados" class="ocultar" aria-label="Otras líneas (horario programado)">
+      <details class="prog-plegable">
+        <summary class="titulo-seccion">Otras líneas (horario programado)</summary>
+        <p class="subtitulo" style="margin:0 0 .6rem">No las opera Trenes Argentinos: no hay arribos en vivo, solo horario oficial.</p>
+        <div class="prog-contenedor"></div>
+      </details>
+    </section>
   </main>
 
-  <div id="result" class="ocultar"></div>
+  <footer class="pie">
+    <p>Datos de <a href="https://www.argentina.gob.ar/transporte/trenes-argentinos" rel="noopener" target="_blank">Trenes Argentinos</a>. App no oficial.</p>
+    <p><a href="gps.html">Mapa en vivo</a> · <a href="clasica.html">Versión clásica</a></p>
+  </footer>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script type="module" src="js/app.js"></script>
+
+  <div id="panelAvisos" class="panel-avisos ocultar" role="region" aria-label="Avisos del servicio">
+    <div class="panel-avisos-caja">
+      <div class="panel-avisos-cabecera">
+        <h2>Avisos del servicio</h2>
+        <button id="cerrarAvisos" class="boton-icono" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <div id="panelAvisosLista"></div>
+      <p class="linea-nombre">Fuente: Trenes Argentinos. Se actualiza cada 5 minutos.</p>
+    </div>
+  </div>
+
+  <div id="panelAcerca" class="panel-avisos ocultar" role="dialog" aria-label="Acerca de TrenAR">
+    <div class="panel-avisos-caja acerca-caja">
+      <div class="panel-avisos-cabecera">
+        <h2 class="marca marca-chica"><img class="marca-logo" src="img/trenar-192.png" alt="" width="32" height="32"><span class="marca-tren">Tren</span><span class="marca-ar">AR</span></h2>
+        <button id="cerrarAcerca" class="boton-icono" type="button" aria-label="Cerrar">✕</button>
+      </div>
+      <p class="acerca-lema">Tu tren, en vivo.</p>
+      <p>Arribos en tiempo real, demoras, andén y avisos del servicio de las líneas de Trenes Argentinos (Mitre, Sarmiento, Roca, San Martín, Belgrano Sur y Tren de la Costa).</p>
+      <p class="linea-nombre">Los datos son de Trenes Argentinos (SOFSE). TrenAR es una app no oficial y no está asociada a ninguna empresa ferroviaria.</p>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Carga de la app. Modo meme (botón del ojo): el patrocinio va antes que
+    // app.js para escuchar sus eventos desde el arranque. Navegadores viejos
+    // (sin `?.`/`??`): la misma app compilada a 2017 en js/compat/
+    // (herramientas/compatible.sh); ?compat=1 la fuerza para probar.
+    (function () {
+      var meme = false, moderno = true, html = "";
+      try { meme = localStorage.getItem("trenAR.meme") === "1"; } catch (e) {}
+      try { new Function("var a; return a?.b ?? 1"); } catch (e) { moderno = false; }
+      if (/[?&]compat=1/.test(location.search)) moderno = false;
+      if (meme) document.body.setAttribute("data-patrocinio", "sancord");
+      var js = function (src, tipo) { html += "<script " + tipo + ' src="' + src + '"><\/script>'; };
+      if (moderno) {
+        js("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js", "defer");
+        if (meme) js("js/v4/patrocinio.js", 'type="module"');
+        js("js/v4/app.js", 'type="module"');
+        js("js/v5/programados.js", 'type="module"');
+        js("js/v6/marca.js", 'type="module"');
+      } else {
+        js("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js", "");
+        if (meme) js("js/compat/patrocinio.js", "");
+        js("js/compat/app.js", "");
+      }
+      document.write(html);
+    })();
+  </script>
 </body>
 </html>

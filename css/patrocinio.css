@@ -269,3 +269,13 @@ body[data-patrocinio] .toast { bottom: 80px; }
 .sancord-mascota.es-tapia { background: #75aadb center / cover no-repeat; border-color: #fff; }
 .tapia-asoma .tapia-cara { animation: tapia-mira 1.6s ease-in-out infinite; }
 @keyframes tapia-mira { 50% { transform: rotate(-8deg) scale(1.04); } }
+
+/* Torneo Chiqui en el buscador (modo meme): el ramal en 2 zonas */
+.autocomplete-list li.torneo-cabecera {
+  background: #75aadb; color: #fff; font-weight: 600; font-size: 0.88rem; cursor: default; gap: 10px;
+}
+.torneo-cabecera img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: none; background: #fff; }
+.autocomplete-list li.torneo-zona {
+  background: #ffd23f; color: #0a7d3b; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.06em;
+  padding: 6px 14px; cursor: default;
+}
