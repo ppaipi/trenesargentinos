@@ -30,7 +30,7 @@ const ICONO_TREN =
 let recorridos = null;
 function cargarRecorridos() {
   if (!recorridos) {
-    recorridos = fetch("recorridos.json?v=3")
+    recorridos = fetch("recorridos.json?v=4")
       .then((r) => (r.ok ? r.json() : {}))
       .catch(() => ({}));
   }

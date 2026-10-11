@@ -31,8 +31,8 @@ Todo cambio va en la web y en la app Android a la vez.
 - `recorridos.json`: polilínea por `linea|||ramal`, Dijkstra sobre vías OSM + red ADIF
   (datos.transporte.gob.ar). Regenerado (oct 2026) con vías OSM (Overpass, rail+disused) +
   Dijkstra por cada estación (orden por distancia sobre la vía desde una punta), vías de la
-  propia línea preferidas, sin lazos ida-y-vuelta. Tren de la Costa y Apeadero Km 12 quedaron
-  con el viejo (TdlC es `light_rail` en OSM). Al cambiarlo,
+  propia línea preferidas, sin lazos ida-y-vuelta. TdlC (`light_rail`) y Apeadero Km 12 (tramo
+  `railway=razed` en Budge) rehechos con `herramientas/recorrido.py`. Al cambiarlo,
   subir `recorridos.json?v=N` en `js/v4/mapa-tren.js`.
 - Mapa base: Argenmap (IGN, TMS) con respaldo CARTO.
 
@@ -59,12 +59,7 @@ Todo cambio va en la web y en la app Android a la vez.
 3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
-Prioridad: 6–7 (bugs) y después 12 y 15.
-6. **Recorridos Tren de la Costa y Belgrano Sur|||Apeadero Km 12**: regenerar sumando
-   `railway=light_rail` a la descarga Overpass (TdlC es light_rail). Script usado: Dijkstra
-   sobre vías OSM por cada estación, orden por distancia sobre la vía desde una punta,
-   penalizar vías de otra línea ×3, sacar lazos (<40 m), Douglas-Peucker 15 m. Validar: 0
-   retrocesos (>150°) y toda estación a <300 m de la polilínea.
+Prioridad: 7 (bug) y después 12 y 15.
 7. **sw.js** precachea archivos de la clásica (`/js/app.js`, `/css/style.css`…), no los de
    index (js/v4…, css/v4…, estaciones-coords, recorridos). Actualizar lista + `CACHE_NAME`.
 8. GitHub Action que corra `herramientas/compatible.sh` en cada push (no olvidarlo).
