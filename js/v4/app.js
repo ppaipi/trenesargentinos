@@ -12,6 +12,7 @@ import { detectarCambioTren } from "./logica.js";
 
 const TITULO = document.title;
 import * as extras from "./extras.js";
+import { abrirAnden } from "./anden.js";
 import { iniciarAvisos, avisosDelViaje, abrirPanelAvisos, mostrarAvisoEstacion } from "./avisos.js";
 
 const INTERVALO_SONDEO_MS = 15000; // la API se consulta cada 15 s; la cuenta regresiva corre local cada 1 s
@@ -334,12 +335,22 @@ function render(trenes, programada) {
         color: COLOR_LINEA[linea] || "var(--azul)",
         linea,
         onAvisar: alternarAviso,
+        onAnden: (t) =>
+          abrirAnden({
+            clave: t.clave,
+            trenes: () => estado.proximos || [],
+            origen: estado.origen,
+            destino: estado.destino,
+            linea,
+            color: COLOR_LINEA[linea] || "var(--azul)",
+          }),
         viaje: { origen: estado.origen, destino: estado.destino },
       });
       tarjetas.set(t.clave, tarjeta);
     }
     tarjeta.actualizar(t);
     tarjeta.div.classList.toggle("proximo", i === 0 && !programada);
+    tarjeta.botonAnden.classList.toggle("ocultar", Boolean(programada));
     ubicarEnOrden(tarjeta.div, i === 0 ? null : tarjetas.get(trenes[i - 1].clave).div);
   });
 

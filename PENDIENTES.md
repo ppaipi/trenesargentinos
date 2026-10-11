@@ -29,6 +29,7 @@ Todo cambio va en la web y en la app Android a la vez.
   reciente elegido al agregarlo (`ConfigWidget`), cuenta regresiva en vivo (Android 7+), se
   redibuja cada minuto con la pantalla prendida, consulta la API si el dato tiene más de 5 min
   (`Api.proximos`, compartido con la app); tocarlo abre el viaje (link `?o=&d=`).
+- "Modo andén" (botón en cada tarjeta en vivo; `js/v4/anden.js` + `css/anden.css` / `ui/Anden.kt`): cuenta regresiva enorme, pantalla siempre encendida (Wake Lock / `keepScreenOn`); "Ya subí" (o solo al llegar el tren y alejarse el GPS) pasa a "a bordo": paradas hasta el destino con la próxima resaltada, posición por GPS sobre `recorridos.json` (`progresoViaje`, `ABordo.kt`) o estimada con horas de la API, aviso al llegar.
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -79,6 +80,4 @@ Todo cambio va en la web y en la app Android a la vez.
 3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
-Prioridad: 15.
-15. **Modo "estoy en el andén"**: pantalla grande con la cuenta regresiva, sin apagarse
-    (Wake Lock en web, `keepScreenOn` en app), legible de lejos.
+Ninguna por ahora (8–15 hechas en oct 2026).

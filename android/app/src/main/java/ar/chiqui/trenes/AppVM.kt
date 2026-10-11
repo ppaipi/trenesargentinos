@@ -80,6 +80,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     var grupos by mutableStateOf<List<GrupoAvisos>>(emptyList()); private set
     var panelAvisos by mutableStateOf(false)
+    var anden by mutableStateOf<String?>(null) // clave del tren en modo andén / a bordo
     var lineaPrimero by mutableStateOf<String?>(null); private set
 
     val toasts = MutableSharedFlow<String>(extraBufferCapacity = 4)

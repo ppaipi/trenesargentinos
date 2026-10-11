@@ -74,7 +74,7 @@ private fun masCercano(linea: List<LatLon>, p: LatLon) = linea.indices.minBy { d
 
 // Entre los ramales que comparten origen y destino, el que nombra el
 // servicio ("Constitución-Ezeiza" → ramal Ezeiza).
-private fun elegirRuta(o: Estacion, d: Estacion, servicio: String): Ruta? {
+internal fun elegirRuta(o: Estacion, d: Estacion, servicio: String): Ruta? {
     val comunes = o.rutas.filter { it in d.rutas }
     return comunes.firstOrNull { servicio.contains(it.ramal, ignoreCase = true) } ?: comunes.firstOrNull()
 }

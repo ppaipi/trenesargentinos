@@ -90,6 +90,7 @@ fun App(vm: AppVM) {
             }
             if (vm.meme) CapasMeme(festejo) { festejo = null }
             CartelAvisoEstacion(vm.avisoEstacion, onAbrir = { vm.avisoEstacion = null; vm.abrirAvisos(it) }) { vm.avisoEstacion = null }
+            vm.anden?.let { c -> PantallaAnden(vm, c, colorLinea(vm.linea()) ?: Color(0xFF74ACDF)) { vm.anden = null } }
         }
         if (vm.panelAvisos) PanelAvisos(vm.grupos, vm.lineaPrimero) { vm.panelAvisos = false }
         if (vm.panelAcerca) PanelAcerca { vm.panelAcerca = false }
@@ -220,6 +221,7 @@ private fun Pantalla(vm: AppVM) {
                                 proximo = i == 0 && !vm.programado,
                                 ahora = vm.ahora,
                                 avisoActivo = t.clave in vm.avisosTren,
+                                onAnden = if (vm.programado) null else ({ vm.anden = t.clave }),
                                 origen = o, destino = d, oscuro = vm.oscuro,
                                 onAvisar = {
                                     if (Build.VERSION.SDK_INT >= 33 && t.clave !in vm.avisosTren &&

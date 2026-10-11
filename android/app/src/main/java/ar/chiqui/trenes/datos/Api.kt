@@ -209,6 +209,13 @@ object Api {
             ubicacion = ubicacion,
             haciaId = final?.texto("idElemento")?.toIntOrNull(),
             hacia = final?.texto("nombre"),
+            horarios = paradas.mapNotNull { e ->
+                val id = e.texto("idElemento")?.toIntOrNull() ?: return@mapNotNull null
+                val ll = e.optJSONObject("llegada")
+                val sa = e.optJSONObject("salida")
+                val h = fecha(ll?.opt("estimada")) ?: fecha(ll?.opt("programada")) ?: fecha(sa?.opt("estimada")) ?: fecha(sa?.opt("programada"))
+                Parada(id, e.texto("nombre") ?: "", h)
+            },
         )
     }
 

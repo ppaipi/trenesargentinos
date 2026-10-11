@@ -181,6 +181,13 @@ export function normalizarArribo(item, destinoId) {
     hacia: final ? { id: Number(final.idElemento), nombre: final.nombre || "" } : null,
     // Paradas del servicio en orden de recorrido (ids), para dibujarlo en el mapa.
     paradas: (servicio.estaciones || []).map((e) => Number(e.idElemento)),
+    // Lo mismo con nombre y hora de paso (ms): lo usa el modo a bordo.
+    horarios: (servicio.estaciones || []).map((e) => {
+      const h =
+        fechaValida(e.llegada?.estimada) || fechaValida(e.llegada?.programada) ||
+        fechaValida(e.salida?.estimada) || fechaValida(e.salida?.programada);
+      return { id: Number(e.idElemento), nombre: e.nombre || "", hora: h ? h.getTime() : null };
+    }),
   };
 }
 
