@@ -100,6 +100,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         override fun onAvailable(network: Network) {
             viewModelScope.launch {
                 online = true
+                if (listo && conexion == Conexion.ERROR && conectar()) arrancar()
                 if (activo && enPrimerPlano) iniciarSondeo()
             }
         }
@@ -117,6 +118,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) { Estaciones.cargar(ctx) }
             listo = true
+            mostrarPendiente()
             refrescarViajes()
             if (conectar()) arrancar()
         }
@@ -188,7 +190,19 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     /** Link compartido (?o=&d=): se abre apenas haya estaciones y conexión. */
     fun abrirViaje(o: Int, d: Int) {
         pendiente = Viaje(o, d)
-        if (listo && conexion == Conexion.OK) arrancar()
+        if (!listo) return
+        mostrarPendiente()
+        if (conexion == Conexion.OK) arrancar()
+    }
+
+    // Sin conexión todavía: al menos las estaciones del link quedan elegidas.
+    private fun mostrarPendiente() {
+        val v = pendiente ?: return
+        val o = Estaciones.porId(v.o) ?: return
+        val d = Estaciones.porId(v.d) ?: return
+        if (Estaciones.rutaCompartida(o, d) == null) return
+        origen = o
+        destino = d
     }
 
     // Prioridad: link abierto y si no, la búsqueda de los últimos 30 min.
