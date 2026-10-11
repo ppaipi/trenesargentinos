@@ -422,6 +422,7 @@ async function alternarAviso(tarjeta) {
   tarjeta.marcarAviso(true);
   tarjeta.avisado = false;
   tarjeta.base = tarjeta.datos?.referencia;
+  tarjeta.ultimaRef = tarjeta.base;
   extras.toast(
     permitido
       ? `Te avisamos ${AVISO_MINUTOS} min antes. Dejá la app abierta.`
@@ -438,7 +439,8 @@ function revisarAviso(tarjeta, ahora) {
     const verbo = t.esCabecera ? "sale de" : "llega a";
     extras.notificar(
       `Tu tren ${verbo} ${t.estacionOrigen} en ${Math.max(0, Math.round(min))} min`,
-      `${t.ramal} · ${hora(t.referencia)}${t.anden ? ` · Andén ${t.anden}` : ""}`
+      `${t.ramal} · ${hora(t.referencia)}${t.anden ? ` · Andén ${t.anden}` : ""}`,
+      { tag: `aviso-${t.clave}-llegada` }
     );
   }
 }
@@ -451,7 +453,8 @@ function revisarSeguidos(trenes) {
   for (const [clave, tarjeta] of tarjetas) {
     if (!tarjeta.aviso || tarjeta.base == null || !tarjeta.datos) continue;
     const actual = trenes.find((t) => t.clave === clave);
-    const cambio = detectarCambioTren(tarjeta.base, actual?.referencia, ahora);
+    const cambio = detectarCambioTren(tarjeta.base, actual?.referencia, ahora, undefined, tarjeta.ultimaRef ?? tarjeta.base);
+    if (actual) tarjeta.ultimaRef = actual.referencia;
     if (!cambio) continue;
     const t = tarjeta.datos;
     const verbo = t.esCabecera ? "sale de" : "llega a";
@@ -459,13 +462,15 @@ function revisarSeguidos(trenes) {
       tarjeta.base = null;
       extras.notificar(
         "Tu tren ya no aparece en los arribos",
-        `${t.ramal} · ${hora(t.referencia)} · puede estar cancelado o muy demorado.`
+        `${t.ramal} · ${hora(t.referencia)} · puede estar cancelado o muy demorado.`,
+        { tag: `aviso-${clave}-desaparecio` }
       );
     } else {
       tarjeta.base = actual.referencia;
       extras.notificar(
         `Tu tren suma ${cambio.sumaMin} min de demora`,
-        `${t.ramal} · ahora ${verbo} ${t.estacionOrigen} a las ${hora(actual.referencia)}`
+        `${t.ramal} · ahora ${verbo} ${t.estacionOrigen} a las ${hora(actual.referencia)}`,
+        { tag: `aviso-${clave}-demora` }
       );
     }
   }
@@ -526,7 +531,11 @@ function arrancarDesdeUrl() {
   const params = new URLSearchParams(location.search);
   const viaje = params.has("o")
     ? { o: params.get("o"), d: params.get("d") }
-    : (params.get("ir") === "favorito" && extras.favoritos()[0]) || extras.recienteActivo();
+    : params.get("ir") === "favorito"
+      ? extras.favoritos()[0]
+      : params.has("ir") // cercanas/avisos: no pisar el panel con el reciente
+        ? null
+        : extras.recienteActivo();
   if (!viaje) return;
   const o = buscarEstacionPorId(viaje.o);
   const d = buscarEstacionPorId(viaje.d);
@@ -601,6 +610,12 @@ async function iniciar() {
   if (ir === "avisos") abrirPanelAvisos();
   else if (ir === "cercanas") usarCercana();
   if (await conexion) arrancarDesdeUrl();
+  if (ir) {
+    // Ya usado: que una recarga no lo repita.
+    const url = new URL(location.href);
+    url.searchParams.delete("ir");
+    history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+  }
 }
 
 iniciar();

@@ -13,12 +13,17 @@ sealed class CambioTren {
 /**
  * Tren seguido ("Avisame"): compara la hora de referencia base (al activar el
  * aviso o en la última alerta) con la de la respuesta nueva (null = no vino).
- * Desaparecer con menos de 1 min para su hora es normal (llegó o salió).
+ * Desaparecer con menos de 1 min para su hora es normal (llegó o salió); esa
+ * hora es la última vista ([ultimaVista]), no la base: si el tren se adelantó
+ * y ya pasó no es un falso aviso. La demora se mide contra la base.
  * Quien llama mueve la base a la hora nueva tras avisar (no repite el aviso).
  */
-fun detectarCambioTren(anterior: Long?, actual: Long?, ahora: Long, umbralMin: Int = UMBRAL_DEMORA_MIN): CambioTren? {
+fun detectarCambioTren(
+    anterior: Long?, actual: Long?, ahora: Long,
+    umbralMin: Int = UMBRAL_DEMORA_MIN, ultimaVista: Long? = anterior,
+): CambioTren? {
     if (anterior == null) return null
-    if (actual == null) return if (anterior - ahora > 60_000) CambioTren.Desaparecio else null
+    if (actual == null) return if ((ultimaVista ?: anterior) - ahora > 60_000) CambioTren.Desaparecio else null
     val sumaMin = ((actual - anterior) / 60000.0).roundToInt()
     return if (sumaMin >= umbralMin) CambioTren.Demora(sumaMin) else null
 }

@@ -34,6 +34,17 @@ class LogicaTest {
     }
 
     @Test
+    fun detectarCambioTren_adelantadoYPasoNoEsDesaparicion() {
+        val base = en(600.0) // al activar: llegaba en 10 min
+        // Se adelantó: la última vez venía en 30 s y después ya no aparece.
+        assertNull(detectarCambioTren(base, null, t0, 5, ultimaVista = en(30.0)))
+        // La última vez faltaban 5 min: sí desapareció.
+        assertEquals(CambioTren.Desaparecio, detectarCambioTren(base, null, t0, 5, ultimaVista = en(300.0)))
+        // La demora sigue midiéndose contra la base, no contra la última vista.
+        assertEquals(CambioTren.Demora(6), detectarCambioTren(base, en(960.0), t0, 5, ultimaVista = en(900.0)))
+    }
+
+    @Test
     fun cuentaRegresiva_formatos() {
         fun chk(seg: Double, num: String, uni: String) {
             val c = cuentaRegresiva(en(seg), t0)

@@ -62,7 +62,11 @@ import androidx.core.location.LocationListenerCompat
 import androidx.core.location.LocationManagerCompat
 import androidx.core.location.LocationRequestCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import ar.chiqui.trenes.AppVM
+import ar.chiqui.trenes.CLAVE_LLEGADA
 import ar.chiqui.trenes.Notificaciones
 import ar.chiqui.trenes.datos.Api
 import ar.chiqui.trenes.datos.Estacion
@@ -85,7 +89,19 @@ private val AMARILLO = Color(0xFFFFD23F)
 private val PASADA = Color(0xFF6F8197)
 private const val SUBIDA_KM = 0.3 // con el tren ya en el andén, alejarse esto del origen = subió
 private const val REFRESCO_BORDO_MS = 30_000L
-private const val ID_LLEGADA = 4343
+private val ID_LLEGADA = CLAVE_LLEGADA.hashCode() // mismo id que la alarma: no se duplica
+private const val TOLERANCIA_MS = 120_000L
+
+// Respuesta nueva del tren abordado: por equipo si lo trae (la clave es estable);
+// si no, la clave cambia por estación y se empareja por ramal + hora en el origen (±2 min).
+private fun esElMismo(abordo: Tren, r: Tren, origenId: Int, salida: Long?): Boolean {
+    if (tieneEquipo(abordo)) return r.clave == abordo.clave
+    if (r.ramal != abordo.ramal || salida == null) return false
+    val h = r.horarios.firstOrNull { it.id == origenId }?.hora ?: return false
+    return kotlin.math.abs(h - salida) <= TOLERANCIA_MS
+}
+
+private fun tieneEquipo(t: Tren) = t.clave != "${t.ramal}-${t.programada}"
 
 private class Bordo(val tren: Tren, val paradas: List<ParadaViaje>, val linea: List<LatLon>?)
 
@@ -141,49 +157,60 @@ fun PantallaAnden(vm: AppVM, clave: String, color: Color, onCerrar: () -> Unit) 
 
     var permiso by remember { mutableStateOf(tienePermisoUbicacion(ctx)) }
     var pos by remember { mutableStateOf<LatLon?>(null) }
-    var bordo by remember { mutableStateOf<Bordo?>(null) }
-    var horas by remember { mutableStateOf<Map<Int, Long>>(emptyMap()) } // refrescos de la API a bordo
-    var avisado by remember { mutableStateOf(false) }
+    // Estado a bordo en el VM: sobrevive a la rotación (la pantalla se recrea).
+    val estado = vm.bordo
+    val bordo = remember(estado?.tren) {
+        estado?.tren?.let { t -> Bordo(t, tramo(t, o, d), elegirRuta(o, d, t.ramal)?.let { Estaciones.recorrido(it) }?.takeIf { it.size > 1 }) }
+    }
+    val horas = estado?.horas.orEmpty() // refrescos de la API a bordo
+    val avisado = estado?.avisado == true
+    // GPS y refresco solo con la app visible (no en segundo plano).
+    val visible = LocalLifecycleOwner.current.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
 
     // GPS solo con permiso ya dado (sirve también para detectar que subió).
-    DisposableEffect(permiso) {
+    DisposableEffect(permiso, visible) {
         val lm = ctx.getSystemService(LocationManager::class.java)
         val oyente = LocationListenerCompat { pos = LatLon(it.latitude, it.longitude) }
-        if (permiso) {
+        val activo = permiso && visible
+        if (activo) {
             val pedido = LocationRequestCompat.Builder(3000L).setQuality(LocationRequestCompat.QUALITY_HIGH_ACCURACY).build()
             listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER).filter { lm.isProviderEnabled(it) }.forEach {
                 runCatching { LocationManagerCompat.requestLocationUpdates(lm, it, pedido, oyente, Looper.getMainLooper()) }
             }
         }
-        onDispose { if (permiso) LocationManagerCompat.removeUpdates(lm, oyente) }
+        onDispose { if (activo) LocationManagerCompat.removeUpdates(lm, oyente) }
     }
     val pedirPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { r ->
         permiso = r.values.any { it }
     }
 
     fun subir(t: Tren, pedirGps: Boolean) {
-        val ruta = elegirRuta(o, d, t.ramal)
-        bordo = Bordo(t, tramo(t, o, d), ruta?.let { Estaciones.recorrido(it) }?.takeIf { it.size > 1 })
+        vm.bordo = AppVM.EstadoBordo(t)
         if (pedirGps && !permiso) {
             pedirPermiso.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
         }
     }
 
     // Sin GPS: horas nuevas de la API para este tren, consultando la próxima parada.
-    LaunchedEffect(bordo) {
+    LaunchedEffect(bordo, visible) {
         val b = bordo ?: return@LaunchedEffect
+        if (!visible) return@LaunchedEffect
         while (true) {
             delay(REFRESCO_BORDO_MS)
-            if (avisado) break
-            val paradas = b.paradas.map { p -> horas[p.id]?.let { p.copy(hora = it) } ?: p }
+            val e = vm.bordo ?: break
+            if (e.avisado) break
+            val paradas = b.paradas.map { p -> e.horas[p.id]?.let { p.copy(hora = it) } ?: p }
             val p = progresoViaje(paradas, pos, b.linea, System.currentTimeMillis())
             val sig = maxOf(1, p.ultima + 1)
             if (sig >= paradas.size - 1) continue
+            val salida = paradas.first().hora
             runCatching {
                 Api.arribos(paradas[sig].id, d.id).firstNotNullOfOrNull { r ->
-                    Api.normalizar(r, d.id)?.takeIf { it.clave == b.tren.clave }
+                    Api.normalizar(r, d.id)?.takeIf { esElMismo(b.tren, it, o.id, salida) }
                 }
-            }.getOrNull()?.let { t -> horas = horas + t.horarios.mapNotNull { h -> h.hora?.let { h.id to it } } }
+            }.getOrNull()?.let { t ->
+                vm.bordo?.let { act -> vm.bordo = act.copy(horas = act.horas + t.horarios.mapNotNull { h -> h.hora?.let { h.id to it } }) }
+            }
         }
     }
 
@@ -218,9 +245,13 @@ fun PantallaAnden(vm: AppVM, clave: String, color: Color, onCerrar: () -> Unit) 
                 val ultima = maxOf(0, p.ultima) // ya subió: el origen cuenta como pasado
                 val siguiente = if (p.llego || ultima + 1 >= paradas.size) null else ultima + 1
                 val destino = paradas.last()
+                // Alarma para la hora de llegada: avisa aunque la pantalla esté bloqueada.
+                LaunchedEffect(destino.hora, avisado) {
+                    vm.programarLlegada(destino.hora, "Llegaste a ${destino.nombre}", "${b.tren.ramal} · bajate acá")
+                }
                 LaunchedEffect(siguiente == null) {
                     if (siguiente == null && !avisado) {
-                        avisado = true
+                        vm.bordo = vm.bordo?.copy(avisado = true)
                         vibrar(ctx)
                         Notificaciones.mostrar(ctx, "Llegaste a ${destino.nombre}", "${b.tren.ramal} · bajate acá", ID_LLEGADA)
                     }

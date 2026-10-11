@@ -1,6 +1,6 @@
 /* Modo andén / a bordo: pantalla completa, alto contraste, celeste de la marca.
    Siempre oscuro (se lee mejor de lejos y con sol). Sin inset/clamp: navegadores viejos. */
-.anden {
+.modo-anden {
   position: fixed;
   top: 0; right: 0; bottom: 0; left: 0;
   z-index: 3000;

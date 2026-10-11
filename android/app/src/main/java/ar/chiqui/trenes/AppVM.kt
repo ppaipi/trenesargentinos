@@ -45,6 +45,7 @@ class Mensaje(val texto: String, val accion: Accion? = null)
 
 private const val SONDEO_MS = 15000L // la API se consulta cada 15 s; la cuenta regresiva corre local cada 1 s
 private const val AVISOS_MS = 5 * 60000L
+const val CLAVE_LLEGADA = "llegada-bordo" // alarma y notificación de llegada a bordo
 
 /** Estado y lógica de la pantalla (equivale a js/v4/app.js + avisos.js). */
 class AppVM(app: Application) : AndroidViewModel(app) {
@@ -80,7 +81,28 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     var grupos by mutableStateOf<List<GrupoAvisos>>(emptyList()); private set
     var panelAvisos by mutableStateOf(false)
-    var anden by mutableStateOf<String?>(null) // clave del tren en modo andén / a bordo
+    // Modo andén / a bordo. Vive acá (no en la pantalla) para sobrevivir a la
+    // rotación; al cerrarlo o cambiar de viaje se borra el estado a bordo.
+    private var andenClave by mutableStateOf<String?>(null)
+    var anden: String? // clave del tren en modo andén / a bordo
+        get() = andenClave
+        set(v) {
+            if (v != andenClave) {
+                bordo = null
+                Notificaciones.cancelar(ctx, CLAVE_LLEGADA)
+            }
+            andenClave = v
+        }
+
+    /** Tren abordado, horas nuevas de la API por parada y si ya se avisó la llegada. */
+    data class EstadoBordo(val tren: Tren, val horas: Map<Int, Long> = emptyMap(), val avisado: Boolean = false)
+    var bordo by mutableStateOf<EstadoBordo?>(null)
+
+    /** Alarma de llegada al destino (llega con la pantalla bloqueada); se reprograma si cambia la hora. */
+    fun programarLlegada(en: Long?, titulo: String, cuerpo: String) {
+        if (en == null || en <= System.currentTimeMillis() || bordo?.avisado != false) Notificaciones.cancelar(ctx, CLAVE_LLEGADA)
+        else Notificaciones.programar(ctx, CLAVE_LLEGADA, en, titulo, cuerpo)
+    }
     var lineaPrimero by mutableStateOf<String?>(null); private set
 
     val toasts = MutableSharedFlow<String>(extraBufferCapacity = 4)
@@ -191,6 +213,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     /** Link compartido (?o=&d=): se abre apenas haya estaciones y conexión. */
     fun abrirViaje(o: Int, d: Int) {
+        if (origen?.id != o || destino?.id != d) anden = null // otro viaje: fuera del modo andén
         pendiente = Viaje(o, d)
         if (!listo) return
         mostrarPendiente()
@@ -455,7 +478,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         val o = origen; val d = destino
         if (o != null && d != null) seguidos.seguir("${o.id}-${d.id}", t)
         reprogramarAvisos()
-        toast("Te avisamos ${Notificaciones.MINUTOS_ANTES} min antes, aunque cierres la app.")
+        toast("Te avisamos ${Notificaciones.MINUTOS_ANTES} min antes, aunque cierres la app. Si se demora o deja de aparecer, solo con la app abierta.")
     }
 
     private fun reprogramarAvisos() {

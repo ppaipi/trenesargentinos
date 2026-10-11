@@ -14,6 +14,17 @@ test("tren seguido: desaparece, suma demora, poca demora y ya pasó", () => {
   assert.equal(detectarCambioTren(null, null, T0, 5), null);
 });
 
+test("tren seguido adelantado: pasa antes de la base y desaparece sin avisar", () => {
+  const base = en(10 * 60); // hora al activar el aviso
+  // Se adelantó: la última vez vino para dentro de 30 s; después ya no viene.
+  assert.equal(detectarCambioTren(base, null, T0, 5, en(30)), null);
+  assert.equal(detectarCambioTren(base, null, T0, 5, en(-60)), null);
+  // Con la última referencia todavía lejos, sí es desaparición.
+  assert.deepEqual(detectarCambioTren(base, null, T0, 5, en(8 * 60)), { tipo: "desaparecio" });
+  // La demora se sigue midiendo contra la base.
+  assert.deepEqual(detectarCambioTren(base, en(16 * 60), T0, 5, en(2 * 60)), { tipo: "demora", sumaMin: 6 });
+});
+
 const T0 = Date.UTC(2026, 9, 11, 15, 0, 0);
 const en = (seg) => new Date(T0 + seg * 1000);
 

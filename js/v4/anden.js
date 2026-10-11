@@ -27,8 +27,12 @@ function el(tag, clase, texto) {
 
 async function pedirWakeLock() {
   if (!actual || document.visibilityState !== "visible" || !("wakeLock" in navigator)) return;
+  const a = actual;
   try {
-    actual.lock = await navigator.wakeLock.request("screen");
+    const l = await navigator.wakeLock.request("screen");
+    // Si se cerró (o se reabrió) mientras esperábamos, el lock no es de nadie.
+    if (actual === a && a) a.lock = l;
+    else l.release().catch(() => {});
   } catch (e) {
     /* sin permiso o batería baja: sigue sin wake lock */
   }
@@ -53,7 +57,7 @@ function alVolverAtras() {
  */
 export function abrirAnden({ clave, trenes, origen, destino, linea, color }) {
   if (actual) cerrar();
-  const div = el("div", "anden");
+  const div = el("div", "modo-anden");
   div.setAttribute("role", "dialog");
   div.setAttribute("aria-modal", "true");
   div.setAttribute("aria-label", "Modo andén");
@@ -156,7 +160,8 @@ function tickAnden(ahora) {
     return;
   }
   const c = cuentaRegresiva(t.referencia, ahora);
-  const hacia = t.hacia && t.hacia !== t.estacionDestino ? ` · hacia ${t.hacia}` : "";
+  const haciaNom = typeof t.hacia === "string" ? t.hacia : t.hacia?.nombre;
+  const hacia = haciaNom && haciaNom !== t.estacionDestino ? ` · hacia ${haciaNom}` : "";
   v.ramal.textContent = `${t.ramal}${hacia}`;
   v.num.textContent = c.num;
   v.uni.textContent = c.uni;
@@ -167,9 +172,11 @@ function tickAnden(ahora) {
     ? `Siguiente: ${hora(sig.referencia)} · en ${cuentaRegresiva(sig.referencia, ahora).num}`
     : "";
   v.subi.hidden = false;
-  // Subió solo: el tren ya está (YA) y el GPS se alejó del origen.
+  // Subió solo: estuvo en el origen, el tren ya está (YA) y el GPS se alejó.
   const o = actual.origen.coords;
-  if (c.ya && actual.pos && o && distanciaKm(actual.pos, o) > SUBIDA_KM) subir(t, false);
+  const dist = actual.pos && o ? distanciaKm(actual.pos, o) : null;
+  if (dist != null && dist <= SUBIDA_KM) actual.estuvoEnOrigen = true;
+  if (c.ya && actual.estuvoEnOrigen && dist != null && dist > SUBIDA_KM) subir(t, false);
 }
 
 /* ---------- A bordo ---------- */
@@ -251,7 +258,7 @@ function tickBordo(ahora) {
     v.llegada.textContent = "";
     if (!b.avisado) {
       b.avisado = true;
-      notificar(`Llegaste a ${destino.nombre}`, `${b.tren.ramal} · bajate acá`);
+      notificar(`Llegaste a ${destino.nombre}`, `${b.tren.ramal} · bajate acá`, { tag: `aviso-${b.tren.clave}-bajada` });
     }
   } else {
     const sig = b.paradas[siguiente];
@@ -279,6 +286,16 @@ function tickBordo(ahora) {
   }
 }
 
+// Sin equipo.id la clave es ramal + hora programada en la estación consultada,
+// que cambia de parada a parada: ahí se empareja por ramal + hora en el origen.
+const sinEquipo = (t) => t.clave === `${t.ramal}-${t.programada ? +new Date(t.programada) : undefined}`;
+function mismoTren(x, b) {
+  if (!sinEquipo(b.tren)) return x.clave === b.tren.clave;
+  const origen = b.paradas[0];
+  const h = (x.horarios || []).find((e) => e.id === origen.id)?.hora;
+  return x.ramal === b.tren.ramal && h != null && origen.hora != null && Math.abs(h - origen.hora) <= 120000;
+}
+
 // Sin GPS: horas nuevas de la API para este tren, consultando la próxima parada.
 async function refrescarBordo() {
   const a = actual;
@@ -287,9 +304,12 @@ async function refrescarBordo() {
   try {
     const p = progresoViaje(b.paradas, { pos: a.pos, linea: b.linea });
     const sig = Math.max(1, p.ultima + 1);
-    if (sig < b.paradas.length - 1) {
-      const crudos = await arribos(b.paradas[sig].id, a.destino.id);
-      const t = crudos.map((r) => normalizarArribo(r, a.destino.id)).find((x) => x && x.clave === b.tren.clave);
+    if (sig < b.paradas.length) {
+      // Hacia el destino: "hasta" el final del servicio (consultar destino→destino no sirve).
+      const fin = b.tren.paradas?.at(-1);
+      const hasta = sig < b.paradas.length - 1 || fin == null ? a.destino.id : fin;
+      const crudos = await arribos(b.paradas[sig].id, hasta);
+      const t = crudos.map((r) => normalizarArribo(r, a.destino.id)).find((x) => x && mismoTren(x, b));
       if (t && actual === a) {
         const horas = new Map((t.horarios || []).map((h) => [h.id, h.hora]));
         b.paradas.forEach((e) => {

@@ -140,13 +140,14 @@ export async function pedirPermisoNotificaciones() {
   return (await Notification.requestPermission()) === "granted";
 }
 
-export async function notificar(titulo, cuerpo) {
+// tag: notificaciones con el mismo tag se reemplazan; distinto tag, conviven.
+export async function notificar(titulo, cuerpo, { tag = "trenes-aviso" } = {}) {
   navigator.vibrate?.([200, 100, 200]);
   if (!("Notification" in window) || Notification.permission !== "granted") {
     toast(`${titulo}: ${cuerpo}`, 6000);
     return;
   }
-  const opciones = { body: cuerpo, icon: "icon-192.png", badge: "icon-192.png", tag: "trenes-aviso", renotify: true };
+  const opciones = { body: cuerpo, icon: "icon-192.png", badge: "icon-192.png", tag, renotify: true };
   try {
     // En Android sólo funciona via service worker.
     const reg = await navigator.serviceWorker?.getRegistration();

@@ -68,9 +68,14 @@ export function crearMapaLinea(contenedor, { recorrido, estaciones, color }) {
   return {
     async abrir() {
       if (!window.L) return;
-      if (map) return setTimeout(() => map.invalidateSize(), 30);
+      const ajustar = () => setTimeout(() => {
+        if (!map) return;
+        map.invalidateSize();
+        map.fitBounds(L.latLngBounds(estaciones.map(([, lat, lon]) => [lat, lon])).pad(0.08));
+      }, 30);
+      if (map) return ajustar();
       const c = colorReal(color);
-      map = L.map(contenedor, { scrollWheelZoom: false, zoomControl: true });
+      map = L.map(contenedor, { scrollWheelZoom: false, zoomControl: true, zoomSnap: 0.25 });
       map.on("click", () => map.scrollWheelZoom.enable());
       capaBase(map);
       const puntos = estaciones.map(([, lat, lon]) => [lat, lon]);
@@ -79,6 +84,7 @@ export function crearMapaLinea(contenedor, { recorrido, estaciones, color }) {
       if (!map) return;
       const linea = todos[recorrido]?.length > 1 ? todos[recorrido] : puntos;
       L.polyline(linea, { color: c, weight: 5, opacity: 0.95 }).addTo(map);
+      ajustar();
       const relleno = temaOscuro() ? "#1a1e25" : "#ffffff";
       estaciones.forEach(([nombre, lat, lon], i) => {
         const extremo = i === 0 || i === estaciones.length - 1;
@@ -183,7 +189,7 @@ export function crearMapaTren(contenedor, { origen, destino, color }) {
   });
 
   function iniciar() {
-    map = L.map(contenedor, { scrollWheelZoom: false, zoomControl: true });
+    map = L.map(contenedor, { scrollWheelZoom: false, zoomControl: true, zoomSnap: 0.25 });
     capaBase(map);
     map.on("dragstart zoomstart", (e) => {
       if (e.hard !== false && map._seMueveSolo !== true) siguiendo = false;

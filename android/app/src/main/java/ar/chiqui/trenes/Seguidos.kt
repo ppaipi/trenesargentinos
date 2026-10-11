@@ -22,7 +22,7 @@ class Seguidos(private val ctx: Context) {
         for ((clave, s) in mapa) {
             if (s.viaje != viaje) continue
             val actual = lista.firstOrNull { it.clave == clave }
-            val cambio = detectarCambioTren(s.base, actual?.referencia, ahora)
+            val cambio = detectarCambioTren(s.base, actual?.referencia, ahora, ultimaVista = s.ultimo.referencia)
             if (actual != null) s.ultimo = actual
             val t = s.ultimo
             val id = "cambio-$clave".hashCode()

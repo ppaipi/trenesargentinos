@@ -62,6 +62,13 @@ class WidgetTren : AppWidgetProvider() {
 
     override fun onDeleted(ctx: Context, ids: IntArray) = ids.forEach { ConfigWidget.borrar(ctx, it) }
 
+    // Restauración de backup / cambio de launcher: los ids cambian, se mudan los viajes.
+    override fun onRestored(ctx: Context, oldIds: IntArray, newIds: IntArray) {
+        val viajes = oldIds.map { ConfigWidget.viaje(ctx, it) }
+        oldIds.forEach { ConfigWidget.borrar(ctx, it) }
+        newIds.forEachIndexed { i, id -> viajes.getOrNull(i)?.let { ConfigWidget.guardar(ctx, id, it) } }
+    }
+
     override fun onDisabled(ctx: Context) {
         ctx.getSystemService(AlarmManager::class.java).cancel(intentTick(ctx))
     }

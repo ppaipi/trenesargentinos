@@ -36,11 +36,13 @@ object Atajos {
                 .setIntent(intent)
                 .build()
         }.take(max)
-        try {
+        // false o excepción = límite de frecuencia del sistema: se reintenta la próxima vez.
+        val ok = try {
             ShortcutManagerCompat.setDynamicShortcuts(ctx, atajos)
         } catch (_: Exception) {
-            ultimos = null // límite de frecuencia del sistema: se reintenta la próxima vez
+            false
         }
+        if (!ok) ultimos = null
     }
 
     fun link(v: Viaje) = "https://tapia.chiqui.ar/?o=${v.o}&d=${v.d}"

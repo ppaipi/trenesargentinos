@@ -168,7 +168,7 @@ function notificarNuevos(lineasDeInteres) {
     }
   }
   guardarVistos(set);
-  nuevos.slice(0, 3).forEach((a) => notificar(`Aviso · ${a.linea}`, a.texto));
+  nuevos.slice(0, 3).forEach((a) => notificar(`Aviso · ${a.linea}`, a.texto, { tag: `aviso-servicio-${a.id}` }));
 }
 
 /* ---------- Campana y panel ---------- */

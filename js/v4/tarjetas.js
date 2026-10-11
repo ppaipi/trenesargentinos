@@ -82,7 +82,8 @@ export function crearTarjeta({ color, linea, onAvisar, onAnden, viaje }) {
   tarjeta.actualizar = (t) => {
     tarjeta.datos = t;
     ramal.textContent = t.ramal;
-    const sentido = t.hacia && t.hacia !== t.estacionDestino ? `hacia ${t.hacia} · ` : "";
+    const haciaNom = typeof t.hacia === "string" ? t.hacia : t.hacia?.nombre;
+    const sentido = haciaNom && haciaNom !== t.estacionDestino ? `hacia ${haciaNom} · ` : "";
     sub.textContent = `${linea ? linea + " · " : ""}${sentido}${t.esCabecera ? "sale de" : "llega a"} ${t.estacionOrigen}`;
     horaOrigen.textContent = hora(t.referencia);
     estOrigen.textContent = t.estacionOrigen;
