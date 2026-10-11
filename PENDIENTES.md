@@ -59,9 +59,7 @@ Todo cambio va en la web y en la app Android a la vez.
 3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
-Prioridad: 7 (bug) y después 12 y 15.
-7. **sw.js** precachea archivos de la clásica (`/js/app.js`, `/css/style.css`…), no los de
-   index (js/v4…, css/v4…, estaciones-coords, recorridos). Actualizar lista + `CACHE_NAME`.
+Prioridad: 12 y 15.
 8. GitHub Action que corra `herramientas/compatible.sh` en cada push (no olvidarlo).
 9. `versionCode` automático en la app (sigue en 1; Play lo exige creciente).
 10. Tests mínimos: cuenta regresiva, Torneo Chiqui (zonas), orden de cabecera (Node + JUnit).
