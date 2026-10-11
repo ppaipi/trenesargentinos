@@ -372,14 +372,16 @@ fun BoxScope.CapasMeme(festejo: String?, onFinFestejo: () -> Unit) {
     // Festejo del Chiqui cuando un tren llega al andén.
     if (festejo != null) {
         LaunchedEffect(festejo) {
-            delay(2800)
+            delay(3000)
             onFinFestejo()
         }
         Box(
             Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)).clickable(onClick = onFinFestejo),
             contentAlignment = Alignment.Center,
         ) {
+            FestejoGol()
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                TextoGol()
                 CaraTapia(150.dp, 5.dp)
                 Text(
                     festejo,

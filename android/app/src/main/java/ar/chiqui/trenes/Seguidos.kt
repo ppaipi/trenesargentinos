@@ -11,7 +11,7 @@ import ar.chiqui.trenes.ui.hora
  * suman UMBRAL_DEMORA_MIN de demora, notifica. La base se mueve tras avisar,
  * así el mismo evento no se repite. [viaje] = "origen-destino".
  */
-class Seguidos(private val ctx: Context) {
+class Seguidos(private val ctx: Context, private val onDesaparecio: (Tren) -> Unit = {}) {
     private class Seguido(val viaje: String, var base: Long?, var ultimo: Tren)
     private val mapa = mutableMapOf<String, Seguido>()
 
@@ -30,6 +30,7 @@ class Seguidos(private val ctx: Context) {
                 null -> {}
                 CambioTren.Desaparecio -> {
                     s.base = null
+                    onDesaparecio(t)
                     Notificaciones.mostrar(ctx, "Tu tren ya no aparece en los arribos",
                         "${t.ramal} · ${hora(t.referencia)} · puede estar cancelado o muy demorado.", id)
                 }

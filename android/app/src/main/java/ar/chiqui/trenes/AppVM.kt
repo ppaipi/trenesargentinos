@@ -115,7 +115,8 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     private var enPrimerPlano = false
     private var pendiente: Viaje? = null
     private var avisados = mutableSetOf<String>()
-    private val seguidos = Seguidos(ctx) // alerta si desaparece o suma demora
+    private val seguidos = Seguidos(ctx) { if (meme) postergado = it } // alerta si desaparece o suma demora
+    var postergado by mutableStateOf<Tren?>(null) // sello "POSTERGADO" del modo meme
     private var sondeo: Job? = null
     private var reloj: Job? = null
     private var cicloAvisos: Job? = null

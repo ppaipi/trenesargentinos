@@ -89,6 +89,7 @@ fun App(vm: AppVM) {
                 Box(Modifier.weight(1f)) { Pantalla(vm) }
             }
             if (vm.meme) CapasMeme(festejo) { festejo = null }
+            if (vm.meme) vm.postergado?.let { SelloPostergado(it) { vm.postergado = null } }
             CartelAvisoEstacion(vm.avisoEstacion, onAbrir = { vm.avisoEstacion = null; vm.abrirAvisos(it) }) { vm.avisoEstacion = null }
             vm.anden?.let { c -> PantallaAnden(vm, c, colorLinea(vm.linea()) ?: Color(0xFF74ACDF)) { vm.anden = null } }
         }
@@ -195,7 +196,7 @@ private fun Pantalla(vm: AppVM) {
             val d = vm.destino
             val m = vm.mensaje
             when {
-                vm.cargando && vm.trenes.isEmpty() -> items(3) { Esqueleto() }
+                vm.cargando && vm.trenes.isEmpty() -> if (vm.meme) item { PantallaVar() } else items(3) { Esqueleto() }
                 m != null -> {
                     item {
                         Column(
@@ -223,6 +224,7 @@ private fun Pantalla(vm: AppVM) {
                                 avisoActivo = t.clave in vm.avisosTren,
                                 onAnden = if (vm.programado) null else ({ vm.anden = t.clave }),
                                 origen = o, destino = d, oscuro = vm.oscuro,
+                                meme = vm.meme,
                                 onAvisar = {
                                     if (Build.VERSION.SDK_INT >= 33 && t.clave !in vm.avisosTren &&
                                         ContextCompat.checkSelfPermission(ctx, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED

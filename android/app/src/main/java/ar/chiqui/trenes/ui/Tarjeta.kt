@@ -83,6 +83,7 @@ fun Tarjeta(
     oscuro: Boolean,
     onAvisar: () -> Unit,
     onAnden: (() -> Unit)? = null,
+    meme: Boolean = false,
 ) {
     var mapaAbierto by rememberSaveable(t.clave) { mutableStateOf(false) }
     val cs = MaterialTheme.colorScheme
@@ -181,6 +182,7 @@ fun Tarjeta(
                 letterSpacing = 1.sp,
             )
         }
+        if (meme) TarjetaDisciplina(t.demoraMin, arriba = proximo)
     }
 }
 

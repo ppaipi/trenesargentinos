@@ -194,6 +194,16 @@ const FRASES_TAPIA = [
   "Cargá la SUBE, que te estoy viendo.",
   "Yo también estoy esperando el Roca, hermano.",
   "¿Llegás tarde? Decí que fue el VAR.",
+  "Modo andén activado. Ahora mirás el reloj como yo miro la tabla.",
+  "Cancelado no, postergado.",
+  "Próxima estación: Estadio Claudio Chiqui Tapia. Todas las estaciones deberían llamarse así.",
+  "El Sarmiento está en pretemporada. Vuelve el miércoles.",
+  "Habrá trenes a horario el día que haya un torneo de 20 equipos.",
+  "Retiro–Tigre: 54 minutos más tanda de penales.",
+  "Ahora los trenes pasan por el VAR. Por eso tardan.",
+  "Asientos agotados. Quedan en reventa, solo para socios de Barracas.",
+  "El andén 4 está clausurado por cantos discriminatorios contra mí.",
+  "Tren cancelado. Los puntos van para Barracas.",
 ];
 
 // Cuando un tren llega ("YA"), la cara aparece gigante en el medio.
@@ -213,6 +223,7 @@ function vigilarLlegadas() {
       if (festejados.has(tarjeta)) return;
       festejados.add(tarjeta);
       tapiaFestejo(azar(["¡LLEGÓ! No trates de entenderlo.", "¡Tren en andén! Disfrutalo.", "¡Subí, subí, que se va!"]));
+      golazo();
     });
   }, 1000);
 }
@@ -263,6 +274,95 @@ function tarjetaTapia() {
   return a;
 }
 
+/* ---------- Tribuna: VAR, tarjetas, postergado y gol ---------- */
+
+const sinMovimiento = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+// Demora >= 5 min: amarilla. >= 15: roja y a las duchas.
+function marcarTarjeta(div, demora) {
+  const nivel = demora >= 15 ? "roja" : demora >= 5 ? "amarilla" : "";
+  let t = div.querySelector(":scope > .meme-tarjeta");
+  if (!nivel) return t?.remove();
+  if (!t) {
+    t = el("div", "meme-tarjeta");
+    t.setAttribute("role", "img");
+    div.append(t);
+  }
+  t.setAttribute("aria-label", `Tarjeta ${nivel}: +${demora} min de demora`);
+  t.title = nivel === "roja" ? `Roja directa: +${demora} min. Que lo revise el Tribunal de Disciplina.` : `Amarilla por demorar el juego: +${demora} min.`;
+  if (t.dataset.nivel === nivel) return;
+  t.dataset.nivel = nivel;
+  t.className = `meme-tarjeta ${nivel}`;
+  t.replaceChildren(el("span", "meme-carton"));
+  if (nivel === "roja") t.append(el("span", "meme-expulsado", "EXPULSADO"));
+}
+
+// Mientras se consultan los arribos, el VAR revisa. Sin bloquear nada:
+// se va apenas llega la respuesta.
+let pantallaVar = null;
+let esperaVar = null;
+let topeVar = null;
+let busquedaNueva = false;
+
+function mostrarVar() {
+  if (!pantallaVar) {
+    pantallaVar = el("div", "var-pantalla");
+    pantallaVar.setAttribute("role", "status");
+    const caja = el("div", "var-caja");
+    caja.append(el("span", "var-logo", "VAR"), el("p", null, "VAR · Revisando posible demora"), el("span", "var-barrido"));
+    pantallaVar.append(caja);
+    document.body.append(pantallaVar);
+  }
+  pantallaVar.classList.add("visible");
+}
+
+function ocultarVar() {
+  clearTimeout(esperaVar);
+  clearTimeout(topeVar);
+  pantallaVar?.classList.remove("visible");
+}
+
+document.addEventListener("trenes:consulta", ({ detail }) => {
+  ocultarVar();
+  if (detail.fase !== "inicio") return;
+  // Busqueda nueva: reemplaza al cargando. Sondeo: solo si tarda.
+  if (busquedaNueva) mostrarVar();
+  else esperaVar = setTimeout(mostrarVar, 400);
+  busquedaNueva = false;
+  topeVar = setTimeout(ocultarVar, 15000);
+});
+
+// Tren seguido que dejo de aparecer: no se cancela, se posterga.
+document.addEventListener("trenes:desaparecio", ({ detail }) => {
+  const capa = el("div", "postergado-capa");
+  const sello = el("div", "postergado-sello", "POSTERGADO");
+  capa.append(sello, el("p", null, "Cancelado no, postergado."));
+  if (detail.tren?.ramal) capa.append(el("small", null, `${detail.tren.ramal} · nueva fecha a confirmar por la AFA`));
+  document.body.append(capa);
+  capa.addEventListener("click", () => capa.remove());
+  setTimeout(() => capa.remove(), 3500);
+});
+
+// Llego el tren: gol. Papelitos livianos que se limpian solos.
+function golazo() {
+  const capa = el("div", "gol-capa");
+  capa.append(el("p", "gol-texto", "¡GOOOL!"));
+  if (!sinMovimiento()) {
+    const colores = ["#75aadb", "#ffffff", "#ffd23f"];
+    for (let i = 0; i < 48; i++) {
+      const p = el("i", "papelito");
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.background = colores[i % 3];
+      p.style.animationDelay = `${Math.random() * 0.8}s`;
+      p.style.animationDuration = `${1.6 + Math.random() * 1.2}s`;
+      p.style.setProperty("--deriva", `${Math.round(Math.random() * 120 - 60)}px`);
+      capa.append(p);
+    }
+  }
+  document.body.append(capa);
+  setTimeout(() => capa.remove(), 3000);
+}
+
 const anuncios = [];
 let tarjetaDeTapia = null;
 let cargado = 0;
@@ -311,6 +411,7 @@ document.addEventListener("trenes:busqueda", ({ detail }) => {
   tarjetaDeTapia = null;
   document.getElementById("estadoActualizacion").dataset.sancord =
     detail.modo === "vivo" ? "Monitoreado por Sancord Seguros™" : "";
+  busquedaNueva = true;
   // Cada busqueda (salvo la automatica al abrir) trae su anuncio de 3 segundos.
   if (Date.now() - cargado > 4000) interstitial(3);
 });
@@ -319,6 +420,7 @@ document.addEventListener("trenes:resultados", ({ detail }) => {
   const result = document.getElementById("result");
   const tarjetas = [...result.querySelectorAll(".horario")];
   const demorado = detail.trenes.find((t) => t.demoraMin >= 5);
+  detail.tarjetas?.forEach((t) => marcarTarjeta(t.div, detail.programada ? null : t.datos?.demoraMin));
 
   // Un anuncio cada 2 trenes. app.js reordena las tarjetas en cada sondeo,
   // asi que los reubicamos siempre.

@@ -257,6 +257,7 @@ function buscar() {
 async function consultar(programada) {
   const id = ++estado.consulta;
   const { origen, destino } = estado;
+  emitir("consulta", { fase: "inicio", id });
   try {
     const crudos = await arribos(origen.id, destino.id, programada);
     if (id !== estado.consulta) return;
@@ -290,6 +291,7 @@ async function consultar(programada) {
       );
     }
   }
+  if (id === estado.consulta) emitir("consulta", { fase: "fin", id });
   if (estado.activo && id === estado.consulta && !document.hidden) {
     timerSondeo = setTimeout(() => consultar(), estado.error ? INTERVALO_SONDEO_MS * 2 : INTERVALO_SONDEO_MS);
   }
@@ -460,6 +462,7 @@ function revisarSeguidos(trenes) {
     const verbo = t.esCabecera ? "sale de" : "llega a";
     if (cambio.tipo === "desaparecio") {
       tarjeta.base = null;
+      emitir("desaparecio", { tren: t });
       extras.notificar(
         "Tu tren ya no aparece en los arribos",
         `${t.ramal} · ${hora(t.referencia)} · puede estar cancelado o muy demorado.`,
