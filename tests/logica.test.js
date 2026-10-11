@@ -1,6 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cuentaRegresiva, zonasTorneo, ordenarGeografico } from "../js/v4/logica.js";
+import { cuentaRegresiva, zonasTorneo, ordenarGeografico, detectarCambioTren } from "../js/v4/logica.js";
+
+test("tren seguido: desaparece, suma demora, poca demora y ya pasó", () => {
+  const base = en(10 * 60);
+  assert.deepEqual(detectarCambioTren(base, null, T0, 5), { tipo: "desaparecio" });
+  assert.deepEqual(detectarCambioTren(base, en(16 * 60), T0, 5), { tipo: "demora", sumaMin: 6 });
+  assert.deepEqual(detectarCambioTren(base, en(15 * 60), T0, 5), { tipo: "demora", sumaMin: 5 });
+  assert.equal(detectarCambioTren(base, en(14 * 60), T0, 5), null);
+  assert.equal(detectarCambioTren(base, en(5 * 60), T0, 5), null); // adelanto
+  assert.equal(detectarCambioTren(en(-30), null, T0, 5), null); // ya pasó su hora
+  assert.equal(detectarCambioTren(en(30), null, T0, 5), null); // llegando
+  assert.equal(detectarCambioTren(null, null, T0, 5), null);
+});
 
 const T0 = Date.UTC(2026, 9, 11, 15, 0, 0);
 const en = (seg) => new Date(T0 + seg * 1000);

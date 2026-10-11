@@ -92,6 +92,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     private var enPrimerPlano = false
     private var pendiente: Viaje? = null
     private var avisados = mutableSetOf<String>()
+    private val seguidos = Seguidos(ctx) // alerta si desaparece o suma demora
     private var sondeo: Job? = null
     private var reloj: Job? = null
     private var cicloAvisos: Job? = null
@@ -384,6 +385,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
             ultimaOk = System.currentTimeMillis()
             error = null
             if (!programada) almacen.guardarResultado(Viaje(o.id, d.id), lista)
+            if (!programada) seguidos.revisar("${o.id}-${d.id}", lista)
             mostrar(lista, programada)
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -450,6 +452,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     fun alternarAvisoTren(t: Tren) {
         if (t.clave in avisosTren) {
             avisosTren = avisosTren - t.clave
+            seguidos.dejar(t.clave)
             Notificaciones.cancelar(ctx, t.clave)
             return
         }
@@ -459,6 +462,8 @@ class AppVM(app: Application) : AndroidViewModel(app) {
         }
         avisosTren = avisosTren + t.clave
         avisados.remove(t.clave)
+        val o = origen; val d = destino
+        if (o != null && d != null) seguidos.seguir("${o.id}-${d.id}", t)
         reprogramarAvisos()
         toast("Te avisamos ${Notificaciones.MINUTOS_ANTES} min antes, aunque cierres la app.")
     }

@@ -8,6 +8,7 @@ import {
 } from "./estaciones.js";
 import { crearBuscadorEstacion } from "./buscador.js";
 import { crearTarjeta, skeletons, mensaje, hora, cuentaRegresiva } from "./tarjetas.js";
+import { detectarCambioTren } from "./logica.js";
 
 const TITULO = document.title;
 import * as extras from "./extras.js";
@@ -273,6 +274,7 @@ async function consultar(programada) {
     estado.ultimaOk = Date.now();
     estado.error = null;
     if (!programada) extras.guardarResultado({ o: origen.id, d: destino.id }, trenes);
+    if (!programada) revisarSeguidos(trenes);
     render(trenes, Boolean(programada));
   } catch (error) {
     if (id !== estado.consulta) return;
@@ -408,6 +410,7 @@ async function alternarAviso(tarjeta) {
   const permitido = await extras.pedirPermisoNotificaciones();
   tarjeta.marcarAviso(true);
   tarjeta.avisado = false;
+  tarjeta.base = tarjeta.datos?.referencia;
   extras.toast(
     permitido
       ? `Te avisamos ${AVISO_MINUTOS} min antes. Dejá la app abierta.`
@@ -426,6 +429,34 @@ function revisarAviso(tarjeta, ahora) {
       `Tu tren ${verbo} ${t.estacionOrigen} en ${Math.max(0, Math.round(min))} min`,
       `${t.ramal} · ${hora(t.referencia)}${t.anden ? ` · Andén ${t.anden}` : ""}`
     );
+  }
+}
+
+// Tren seguido: si deja de venir en la respuesta antes de su hora o suma
+// UMBRAL_DEMORA_MIN de demora, avisa (notificación o cartel). La base se
+// mueve tras avisar, así el mismo evento no se repite.
+function revisarSeguidos(trenes) {
+  const ahora = Date.now();
+  for (const [clave, tarjeta] of tarjetas) {
+    if (!tarjeta.aviso || tarjeta.base == null || !tarjeta.datos) continue;
+    const actual = trenes.find((t) => t.clave === clave);
+    const cambio = detectarCambioTren(tarjeta.base, actual?.referencia, ahora);
+    if (!cambio) continue;
+    const t = tarjeta.datos;
+    const verbo = t.esCabecera ? "sale de" : "llega a";
+    if (cambio.tipo === "desaparecio") {
+      tarjeta.base = null;
+      extras.notificar(
+        "Tu tren ya no aparece en los arribos",
+        `${t.ramal} · ${hora(t.referencia)} · puede estar cancelado o muy demorado.`
+      );
+    } else {
+      tarjeta.base = actual.referencia;
+      extras.notificar(
+        `Tu tren suma ${cambio.sumaMin} min de demora`,
+        `${t.ramal} · ahora ${verbo} ${t.estacionOrigen} a las ${hora(actual.referencia)}`
+      );
+    }
   }
 }
 

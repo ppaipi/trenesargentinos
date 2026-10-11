@@ -1,6 +1,8 @@
 package ar.chiqui.trenes
 
+import ar.chiqui.trenes.datos.CambioTren
 import ar.chiqui.trenes.datos.Estacion
+import ar.chiqui.trenes.datos.detectarCambioTren
 import ar.chiqui.trenes.datos.LatLon
 import ar.chiqui.trenes.datos.ordenarGeografico
 import ar.chiqui.trenes.datos.zonasTorneo
@@ -14,6 +16,19 @@ import org.junit.Test
 class LogicaTest {
     private val t0 = 1_791_730_800_000L // 2026-10-11 15:00 UTC
     private fun en(seg: Double) = t0 + (seg * 1000).toLong()
+
+    @Test
+    fun trenSeguido_cambios() {
+        val base = en(600.0)
+        assertEquals(CambioTren.Desaparecio, detectarCambioTren(base, null, t0, 5))
+        assertEquals(CambioTren.Demora(6), detectarCambioTren(base, en(960.0), t0, 5))
+        assertEquals(CambioTren.Demora(5), detectarCambioTren(base, en(900.0), t0, 5))
+        assertNull(detectarCambioTren(base, en(840.0), t0, 5))
+        assertNull(detectarCambioTren(base, en(300.0), t0, 5)) // adelanto
+        assertNull(detectarCambioTren(en(-30.0), null, t0, 5)) // ya pasó su hora
+        assertNull(detectarCambioTren(en(30.0), null, t0, 5)) // llegando
+        assertNull(detectarCambioTren(null, null, t0, 5))
+    }
 
     @Test
     fun cuentaRegresiva_formatos() {

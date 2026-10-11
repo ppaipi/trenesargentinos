@@ -54,3 +54,17 @@ export function zonasTorneo(items) {
   const escritorio = items.find((e) => !zonaA.includes(e) && !zonaB.includes(e));
   return { mitad, zonaA, zonaB, escritorio };
 }
+
+// Tren seguido ("Avisame"): compara la hora de referencia base (al activar el
+// aviso o en la ultima alerta) con la de la respuesta nueva (null = no vino).
+// Devuelve null, { tipo: "desaparecio" } o { tipo: "demora", sumaMin }.
+// Desaparecer con menos de 1 min para su hora es normal (llego o salio).
+// Quien llama mueve la base a la hora nueva tras avisar (no repite el aviso).
+export const UMBRAL_DEMORA_MIN = 5;
+export function detectarCambioTren(anterior, actual, ahora, umbralMin = UMBRAL_DEMORA_MIN) {
+  if (anterior == null) return null;
+  const base = +anterior;
+  if (actual == null) return base - ahora > 60000 ? { tipo: "desaparecio" } : null;
+  const sumaMin = Math.round((+actual - base) / 60000);
+  return sumaMin >= umbralMin ? { tipo: "demora", sumaMin } : null;
+}

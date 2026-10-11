@@ -21,6 +21,8 @@ Todo cambio va en la web y en la app Android a la vez.
 - Cartel al elegir estación con el aviso más grave de su línea (5 s; tocarlo abre los avisos).
 - Cuenta regresiva del próximo tren: título de la pestaña (web) / notificación fija con
   cronómetro al salir de la app (Android 7+; en Android 6 muestra la hora).
+- Tren con "Avisame": alerta si desaparece antes de su hora o suma >= 5 min de demora
+  (`detectarCambioTren` en `logica.js` / `datos/Seguimiento.kt`; web `revisarSeguidos`, app `Seguidos.kt`).
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -70,6 +72,5 @@ Prioridad: 12 y 15.
 11. Atajos: favoritos al mantener apretado el ícono (shortcuts Android + `shortcuts` del manifest).
 12. **Widget Android** con el próximo tren de un viaje favorito (web: no aplica; ya tiene título).
 13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).
-14. Alerta si el tren seguido desaparece o suma más de X min de demora.
 15. **Modo "estoy en el andén"**: pantalla grande con la cuenta regresiva, sin apagarse
     (Wake Lock en web, `keepScreenOn` en app), legible de lejos.
