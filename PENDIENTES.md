@@ -26,8 +26,9 @@ sin tocar `index.html`. Arreglos chicos pueden ir en la versión actual.
   en `css/v5-programados.css`. Reusa `js/v4/app.js` sin tocarlo.
 - `v6.html` — **actual**. v5 + marca **TrenAR**: logo (ilustración Obelisco/andén,
   `android/marca/trenar-logo-original.png`, íconos en `img/trenar-*.png`), wordmark
-  "Tren" + pastilla "AR", `manifest-v6.json`. El "?" abre "Acerca de"; el meme tiene botón propio (cara del
-  Chiqui al lado de la campana) y además 5 toques al logo → patrocinador.html.
+  "Tren" + pastilla "AR", `manifest-v6.json`. El "?" abre "Acerca de"; el meme tiene botón propio (ojo, al lado de
+  la campana) o 5 toques al logo: se guarda en localStorage `trenAR.meme` y al recargar
+  v6 carga `js/v4/patrocinio.js` antes que app.js (sin redirigir).
   Estilos `css/v6-marca.css`, lógica `js/v6/marca.js`. Misma marca que la app Android.
 - `patrocinador.html` — v4 + patrocinio meme "Sancord/Sancor Seguros" (re molesto) y
   Chiqui Tapia ("No trates de entenderla, disfrutala"). Lógica en `js/v4/patrocinio.js`,

@@ -92,10 +92,10 @@ fun PanelAvisos(grupos: List<GrupoAvisos>, lineaPrimero: String?, onCerrar: () -
     }
 }
 
-/** "Acerca de": qué es TrenAR, de dónde salen los datos y la puerta escondida al meme. */
+/** "Acerca de": qué es TrenAR y de dónde salen los datos. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PanelAcerca(meme: Boolean, onMeme: () -> Unit, onCerrar: () -> Unit) {
+fun PanelAcerca(onCerrar: () -> Unit) {
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
     val version = remember { runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: "" }
@@ -125,14 +125,6 @@ fun PanelAcerca(meme: Boolean, onMeme: () -> Unit, onCerrar: () -> Unit) {
                 fontWeight = FontWeight.SemiBold,
             )
             Text("Versión $version", style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant)
-            // La puerta al patrocinio: casi invisible a propósito.
-            Text(
-                if (meme) "Volver a entenderla" else "No trates de entenderla.",
-                Modifier.clickable(onClick = onMeme).padding(8.dp),
-                style = MaterialTheme.typography.labelSmall,
-                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                color = cs.onSurfaceVariant.copy(alpha = 0.45f),
-            )
             Spacer(Modifier.height(8.dp))
         }
     }

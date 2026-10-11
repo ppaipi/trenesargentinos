@@ -29,14 +29,8 @@
 
 .acerca-caja p { margin: 0 0 10px; }
 .acerca-lema { font-weight: 600; color: var(--tinta-suave); }
-/* La puerta al patrocinio: casi invisible a propósito. */
-.acerca-meme { display: block; margin-top: 14px; text-align: center; font-size: 0.75rem; font-style: italic; color: var(--tinta-suave); opacity: 0.45; text-decoration: none; }
 
-/* Botón del meme: la cara del Chiqui, al lado de la campana. */
-.cabecera-fila .boton-meme {
-  right: auto;
-  left: 46px;
-  background: #75aadb url("../img/tapia.png") center / cover no-repeat;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-}
+/* Botón del meme (ojo), al lado de la campana; amarillo cuando está activo. */
+.cabecera-fila .boton-meme { right: auto; left: 46px; }
+.cabecera-fila .boton-meme[aria-pressed="true"] { background: #ffd23f; color: #0a7d3b; }
 h1.marca { padding: 0 90px; }

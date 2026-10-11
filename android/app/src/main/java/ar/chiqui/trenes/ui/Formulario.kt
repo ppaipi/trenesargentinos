@@ -83,6 +83,23 @@ private fun Luna(color: Color) {
     }
 }
 
+// Ojo del botón del meme (mismo trazo que la web).
+@Composable
+private fun Ojo(color: Color) {
+    Canvas(Modifier.size(22.dp)) {
+        val u = size.minDimension / 24f
+        val trazo = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f * u)
+        val ojo = Path().apply {
+            moveTo(2f * u, 12f * u)
+            quadraticTo(12f * u, -1f * u, 22f * u, 12f * u)
+            quadraticTo(12f * u, 25f * u, 2f * u, 12f * u)
+            close()
+        }
+        drawPath(ojo, color, style = trazo)
+        drawCircle(color, radius = 3f * u, center = Offset(12f * u, 12f * u), style = trazo)
+    }
+}
+
 /** Cabecera centrada: campana a la izquierda, "?" (meme) y tema a la derecha. */
 @Composable
 fun Cabecera(vm: AppVM) {
@@ -94,12 +111,12 @@ fun Cabecera(vm: AppVM) {
                 BotonRedondo("Avisos del servicio", translucido, onClick = { vm.abrirAvisos() }) {
                     Icon(Icons.Outlined.Notifications, "Avisos del servicio", tint = Color.White, modifier = Modifier.size(22.dp))
                 }
-                // Botón del meme: la cara del Chiqui; con borde amarillo si está activo.
-                Box(
-                    Modifier.padding(start = 48.dp).size(40.dp).clip(CircleShape)
-                        .border(if (vm.meme) 3.dp else 2.dp, if (vm.meme) Color(0xFFFFD23F) else Color.White.copy(alpha = 0.6f), CircleShape)
-                        .clickable(onClick = vm::alternarMeme),
-                ) { CaraTapia(40.dp, 0.dp) }
+                // Botón del meme (ojo): amarillo cuando está activo.
+                Box(Modifier.padding(start = 48.dp)) {
+                    BotonRedondo("Modo patrocinio", if (vm.meme) Color(0xFFFFD23F) else translucido, onClick = vm::alternarMeme) {
+                        Ojo(if (vm.meme) Color(0xFF0A7D3B) else Color.White)
+                    }
+                }
                 if (total > 0) {
                     val grave = vm.grupos.any { g -> g.avisos.any { it.nivel == Nivel.GRAVE } }
                     Text(
