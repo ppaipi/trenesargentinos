@@ -23,6 +23,8 @@ Todo cambio va en la web y en la app Android a la vez.
   cronómetro al salir de la app (Android 7+; en Android 6 muestra la hora).
 - Atajos del ícono: app = hasta 4 favoritos dinámicos (`Atajos.kt`, link `?o=&d=`, Android 7.1+);
   web = estáticos del manifest (`?ir=favorito|cercanas|avisos`), no puede listar favoritos.
+- Tren con "Avisame": alerta si desaparece antes de su hora o suma >= 5 min de demora
+  (`detectarCambioTren` en `logica.js` / `datos/Seguimiento.kt`; web `revisarSeguidos`, app `Seguidos.kt`).
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -71,6 +73,5 @@ Todo cambio va en la web y en la app Android a la vez.
 Prioridad: 12 y 15.
 12. **Widget Android** con el próximo tren de un viaje favorito (web: no aplica; ya tiene título).
 13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).
-14. Alerta si el tren seguido desaparece o suma más de X min de demora.
 15. **Modo "estoy en el andén"**: pantalla grande con la cuenta regresiva, sin apagarse
     (Wake Lock en web, `keepScreenOn` en app), legible de lejos.
