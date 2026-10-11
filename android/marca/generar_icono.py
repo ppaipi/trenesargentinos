@@ -1,39 +1,45 @@
-"""Genera trenar-icono-512.png (ícono para Play Store) con las mismas formas
-que trenar-icono.svg / res/drawable/ic_launcher_*.xml. Uso: python3 generar_icono.py"""
-from PIL import Image, ImageDraw
+"""Genera los íconos de TrenAR a partir de trenar-logo-original.png (ilustración
+hecha con ChatGPT, cuadrado redondeado sobre blanco).
 
-LADO = 512
-ESC = 4  # se dibuja más grande y se achica: bordes suaves
-s = LADO * ESC / 108  # unidades del lienzo de 108 → píxeles
+- trenar-icono-512.png: ícono de Play Store (cuadrado lleno; Play redondea solo).
+- res/mipmap-xxxhdpi/ic_launcher_arte.png: capa del ícono adaptativo (432 px =
+  108 dp). Android muestra solo el centro y lo recorta (círculo, squircle...), así
+  que el dibujo va achicado al 60 % y los bordes se extienden repitiendo la orilla.
 
+Uso: python3 -I generar_icono.py
+"""
+from PIL import Image
 
-def color(h):
-    return tuple(int(h[i:i + 2], 16) for i in (1, 3, 5))
+ORIGINAL = "trenar-logo-original.png"
+RES = "../app/src/main/res/mipmap-xxxhdpi/ic_launcher_arte.png"
 
+im = Image.open(ORIGINAL).convert("RGB")
+w, h = im.size
+px = im.load()
+blanco = lambda p: min(p) > 240
+x0 = next(x for x in range(w) if not blanco(px[x, h // 2]))
+x1 = next(x for x in range(w - 1, 0, -1) if not blanco(px[x, h // 2]))
+y0 = next(y for y in range(h) if not blanco(px[w // 2, y]))
+y1 = next(y for y in range(h - 1, 0, -1) if not blanco(px[w // 2, y]))
+m = round((x1 - x0) * 0.08)  # margen para esquivar las esquinas redondeadas
+arte = im.crop((x0 + m, y0 + m, x1 - m, y1 - m))
+arte.resize((512, 512), Image.LANCZOS).save("trenar-icono-512.png")
 
-img = Image.new("RGB", (LADO * ESC, LADO * ESC))
-a, b = color("#89F7FE"), color("#3D7FE0")
-d = ImageDraw.Draw(img)
-n = LADO * ESC
-for k in range(2 * n):  # degradado diagonal
-    t = k / (2 * n - 1)
-    c = tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
-    d.line([(k, 0), (0, k)], fill=c)
-
-
-def caja(x, y, w, h):
-    return [x * s, y * s, (x + w) * s, (y + h) * s]
-
-
-d.rounded_rectangle(caja(33, 24, 42, 52), radius=10 * s, fill="#FFFFFF")
-d.rounded_rectangle(caja(38.5, 30, 31, 17), radius=3.5 * s, fill="#0B2547")
-d.rectangle(caja(33, 52, 42, 5), fill="#74ACDF")
-for cx in (43, 65):
-    d.ellipse([(cx - 4) * s, 62 * s, (cx + 4) * s, 70 * s], fill="#F6B40E")
-for x1, x2 in ((42, 36.5), (66, 71.5)):
-    d.line([(x1 * s, 77 * s), (x2 * s, 86 * s)], fill="#FFFFFF", width=round(4.2 * s))
-    for x, y in ((x1, 77), (x2, 86)):  # puntas redondeadas
-        r = 2.1 * s
-        d.ellipse([x * s - r, y * s - r, x * s + r, y * s + r], fill="#FFFFFF")
-
-img.resize((LADO, LADO), Image.LANCZOS).save("trenar-icono-512.png")
+LADO, ESCALA = 432, 0.60
+s = round(LADO * ESCALA)
+o = (LADO - s) // 2
+a = arte.resize((s, s), Image.LANCZOS)
+capa = Image.new("RGB", (LADO, LADO))
+fin = o + s
+# Orillas estiradas hacia afuera (la ilustración es plana: queda prolija).
+capa.paste(a.crop((0, 0, s, 1)).resize((s, o)), (o, 0))
+capa.paste(a.crop((0, s - 1, s, s)).resize((s, LADO - fin)), (o, fin))
+capa.paste(a.crop((0, 0, 1, s)).resize((o, s)), (0, o))
+capa.paste(a.crop((s - 1, 0, s, s)).resize((LADO - fin, s)), (fin, o))
+for (cx, cy), (bx, by, bw, bh) in {
+    (0, 0): (0, 0, o, o), (s - 1, 0): (fin, 0, LADO - fin, o),
+    (0, s - 1): (0, fin, o, LADO - fin), (s - 1, s - 1): (fin, fin, LADO - fin, LADO - fin),
+}.items():
+    capa.paste(Image.new("RGB", (bw, bh), a.getpixel((cx, cy))), (bx, by))
+capa.paste(a, (o, o))
+capa.save(RES)

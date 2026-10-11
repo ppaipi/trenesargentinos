@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Ilustración de TrenAR (android/marca/generar_icono.py) como una sola capa. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@drawable/ic_launcher_fondo" />
-    <foreground android:drawable="@drawable/ic_launcher_tren" />
-    <monochrome android:drawable="@drawable/ic_launcher_tren" />
+    <background android:drawable="@mipmap/ic_launcher_arte" />
+    <foreground android:drawable="@android:color/transparent" />
 </adaptive-icon>

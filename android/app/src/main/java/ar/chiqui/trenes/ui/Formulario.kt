@@ -133,10 +133,15 @@ fun Cabecera(vm: AppVM) {
     }
 }
 
-/** Marca: "Tren" + pastilla "AR". */
+/** Marca: logo + "Tren" + pastilla "AR". */
 @Composable
 fun Wordmark(modifier: Modifier = Modifier, tamano: Float = 34f, claro: Boolean = true) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.foundation.Image(
+            androidx.compose.ui.res.painterResource(ar.chiqui.trenes.R.drawable.logo_trenar), null,
+            Modifier.size((tamano * 1.25f).dp).shadow(4.dp, RoundedCornerShape((tamano * 0.3f).dp)),
+        )
+        Spacer(Modifier.width(8.dp))
         Text(
             "Tren",
             color = if (claro) Color.White else MaterialTheme.colorScheme.primary,

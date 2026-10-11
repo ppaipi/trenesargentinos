@@ -1,0 +1,33 @@
+/* v6 — marca TrenAR: logo + "Tren" + pastilla "AR" (igual que la app Android). */
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: default;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.marca-logo { width: 40px; height: 40px; border-radius: 10px; box-shadow: 0 2px 8px rgba(11, 37, 71, 0.25); }
+.marca-tren { font-size: 2.1rem; letter-spacing: -0.04em; }
+.marca-ar {
+  margin-left: -2px;
+  padding: 0 7px;
+  border-radius: 8px;
+  background: #fff;
+  color: #0b2547;
+  font-size: 1.7rem;
+  text-shadow: none;
+}
+.marca-pregunta { margin: 10px 0 0; font-size: 1.25rem; font-weight: 700; text-shadow: 1px 2px 6px rgba(0, 0, 0, 0.22); }
+
+.marca-chica { margin: 0; padding: 0; color: var(--azul); text-shadow: none; }
+.marca-chica .marca-logo { width: 32px; height: 32px; }
+.marca-chica .marca-tren { font-size: 1.5rem; }
+.marca-chica .marca-ar { font-size: 1.2rem; background: #74acdf; }
+
+.acerca-caja p { margin: 0 0 10px; }
+.acerca-lema { font-weight: 600; color: var(--tinta-suave); }
+/* La puerta al patrocinio: casi invisible a propósito. */
+.acerca-meme { display: block; margin-top: 14px; text-align: center; font-size: 0.75rem; font-style: italic; color: var(--tinta-suave); opacity: 0.45; text-decoration: none; }
