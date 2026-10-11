@@ -482,7 +482,9 @@ function arrancarDesdeUrl() {
   // Prioridad: link compartido/recarga (?o=&d=) y si no, la busqueda de
   // los ultimos 30 min (al cerrar y volver a abrir la app).
   const params = new URLSearchParams(location.search);
-  const viaje = params.has("o") ? { o: params.get("o"), d: params.get("d") } : extras.recienteActivo();
+  const viaje = params.has("o")
+    ? { o: params.get("o"), d: params.get("d") }
+    : (params.get("ir") === "favorito" && extras.favoritos()[0]) || extras.recienteActivo();
   if (!viaje) return;
   const o = buscarEstacionPorId(viaje.o);
   const d = buscarEstacionPorId(viaje.d);
@@ -552,6 +554,10 @@ async function iniciar() {
       ),
   });
   emitir("listo", {});
+  // Atajos del manifest (mantener apretado el ícono de la PWA): ?ir=avisos|cercanas|favorito.
+  const ir = new URLSearchParams(location.search).get("ir");
+  if (ir === "avisos") abrirPanelAvisos();
+  else if (ir === "cercanas") usarCercana();
   if (await conexion) arrancarDesdeUrl();
 }
 

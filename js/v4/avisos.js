@@ -225,6 +225,7 @@ export function iniciarAvisos({ contenedorEstado = null, lineasDeInteres, onActu
     try {
       datos = await pedirAvisos();
       renderCampana();
+      if (!panel.classList.contains("ocultar")) renderPanel(); // abierto antes de que llegaran (?ir=avisos)
       if (contenedorEstado) renderEstado(contenedorEstado);
       notificarNuevos(lineasDeInteres());
       alActualizar();

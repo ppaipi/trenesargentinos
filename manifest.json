@@ -31,6 +31,27 @@
   "id": "/v6.html",
   "shortcuts": [
     {
+      "name": "Mi viaje favorito",
+      "short_name": "Favorito",
+      "description": "Abre el primer viaje guardado",
+      "url": "/?ir=favorito",
+      "icons": [{ "src": "img/trenar-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Estaciones cercanas",
+      "short_name": "Cercanas",
+      "description": "Busca las estaciones cerca tuyo",
+      "url": "/?ir=cercanas",
+      "icons": [{ "src": "img/trenar-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Avisos de las líneas",
+      "short_name": "Avisos",
+      "description": "Estado del servicio y avisos de cada línea",
+      "url": "/?ir=avisos",
+      "icons": [{ "src": "img/trenar-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
       "name": "TrenAR · Tu tren, en vivo",
       "url": "/gps.html"
     }

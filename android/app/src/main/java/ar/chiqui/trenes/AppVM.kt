@@ -282,6 +282,7 @@ class AppVM(app: Application) : AndroidViewModel(app) {
 
     private fun refrescarViajes() {
         favoritos = almacen.favoritos()
+        Atajos.actualizar(ctx, favoritos)
         recientes = almacen.recientes()
         esFavorito = viajeActual()?.let { almacen.esFavorito(it) } ?: false
     }

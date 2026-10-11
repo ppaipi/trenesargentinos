@@ -21,6 +21,8 @@ Todo cambio va en la web y en la app Android a la vez.
 - Cartel al elegir estación con el aviso más grave de su línea (5 s; tocarlo abre los avisos).
 - Cuenta regresiva del próximo tren: título de la pestaña (web) / notificación fija con
   cronómetro al salir de la app (Android 7+; en Android 6 muestra la hora).
+- Atajos del ícono: app = hasta 4 favoritos dinámicos (`Atajos.kt`, link `?o=&d=`, Android 7.1+);
+  web = estáticos del manifest (`?ir=favorito|cercanas|avisos`), no puede listar favoritos.
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -67,7 +69,6 @@ Todo cambio va en la web y en la app Android a la vez.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
 Prioridad: 12 y 15.
-11. Atajos: favoritos al mantener apretado el ícono (shortcuts Android + `shortcuts` del manifest).
 12. **Widget Android** con el próximo tren de un viaje favorito (web: no aplica; ya tiene título).
 13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).
 14. Alerta si el tren seguido desaparece o suma más de X min de demora.
