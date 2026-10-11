@@ -20,7 +20,7 @@ function el(tag, clase, texto) {
  * Tarjeta de un tren. Se crea una vez y despues solo se actualizan sus
  * textos (asi no titila ni se reinicia el mapa en cada sondeo).
  */
-export function crearTarjeta({ color, linea, onAvisar, viaje }) {
+export function crearTarjeta({ color, linea, onAvisar, onAnden, viaje }) {
   const div = el("article", "horario");
   div.style.setProperty("--color-linea", color);
 
@@ -55,13 +55,17 @@ export function crearTarjeta({ color, linea, onAvisar, viaje }) {
   botonMapa.type = "button";
   const botonCentrar = el("button", "boton-secundario ocultar", "Centrar");
   botonCentrar.type = "button";
-  acciones.append(botonAviso, botonMapa, botonCentrar);
+  // Pantalla completa para mirar de lejos en el andén (y después a bordo).
+  const botonAnden = el("button", "boton-secundario", "Modo andén");
+  botonAnden.type = "button";
+  acciones.append(botonAviso, botonAnden, botonMapa, botonCentrar);
   const mapaDiv = el("div", "mapa ocultar");
   div.append(fila, horas, etiquetas, acciones, mapaDiv);
 
-  const tarjeta = { div, datos: null, aviso: false, mapa: null };
+  const tarjeta = { div, datos: null, aviso: false, mapa: null, botonAnden };
 
   botonAviso.addEventListener("click", () => onAvisar(tarjeta));
+  botonAnden.addEventListener("click", () => onAnden && tarjeta.datos && onAnden(tarjeta.datos));
   botonMapa.addEventListener("click", () => {
     const abrir = mapaDiv.classList.contains("ocultar");
     mapaDiv.classList.toggle("ocultar", !abrir);

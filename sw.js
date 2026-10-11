@@ -10,6 +10,8 @@ const ARCHIVOS_PRECACHE = [
   "/css/v5-programados.css",
   "/css/patrocinio.css",
   "/css/v6-marca.css",
+  "/css/anden.css",
+  "/js/v4/anden.js",
   "/js/v4/app.js",
   "/js/v4/api.js",
   "/js/v4/avisos.js",

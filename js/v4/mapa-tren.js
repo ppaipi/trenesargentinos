@@ -28,7 +28,7 @@ const ICONO_TREN =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="15" rx="3.5" fill="#fff"/><rect x="7.2" y="5" width="9.6" height="5.2" rx="1.2" fill="currentColor"/><circle cx="8.8" cy="13.6" r="1.3" fill="currentColor"/><circle cx="15.2" cy="13.6" r="1.3" fill="currentColor"/><path d="M8 18.5 6 21.5M16 18.5l2 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';
 
 let recorridos = null;
-function cargarRecorridos() {
+export function cargarRecorridos() {
   if (!recorridos) {
     recorridos = fetch("recorridos.json?v=4")
       .then((r) => (r.ok ? r.json() : {}))
@@ -64,7 +64,7 @@ function indiceMasCercano(linea, punto) {
 
 // Entre los ramales que comparten origen y destino, el que nombra el
 // servicio ("Constitución-Ezeiza" → ramal Ezeiza).
-function elegirRuta(origen, destino, nombreServicio) {
+export function elegirRuta(origen, destino, nombreServicio) {
   const compartidas = origen.rutas.filter((ra) =>
     destino.rutas.some((rb) => ra.linea === rb.linea && ra.ramal === rb.ramal)
   );

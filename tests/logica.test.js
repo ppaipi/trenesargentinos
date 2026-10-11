@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cuentaRegresiva, zonasTorneo, ordenarGeografico } from "../js/v4/logica.js";
+import { cuentaRegresiva, zonasTorneo, ordenarGeografico, proyectarEnLinea, progresoViaje } from "../js/v4/logica.js";
 
 const T0 = Date.UTC(2026, 9, 11, 15, 0, 0);
 const en = (seg) => new Date(T0 + seg * 1000);
@@ -42,4 +42,49 @@ test("orden de cabecera: desde la más cercana al centro hacia afuera, sin coord
   const orden = ordenarGeografico(lista).map((e) => e.nombre);
   assert.deepEqual(orden, ["Retiro", "Belgrano C", "San Isidro", "Tigre", "Álvarez", "Zárate"]);
   assert.deepEqual(ordenarGeografico([est("B", null), est("A", null)]).map((e) => e.nombre), ["A", "B"]);
+});
+
+// Vía recta hacia el oeste con 4 paradas cada ~1 km (0.011° de longitud).
+const via = [[-34.6, -58.4], [-34.6, -58.433]];
+const paradasRectas = [0, 1, 2, 3].map((i) => ({
+  nombre: `E${i}`,
+  coords: [-34.6, -58.4 - 0.011 * i],
+  hora: T0 + i * 120000,
+}));
+
+test("proyectarEnLinea: km sobre la vía y distancia a ella", () => {
+  const r = proyectarEnLinea(via, [-34.601, -58.411]);
+  assert.ok(Math.abs(r.km - 1.0) < 0.05, `km ${r.km}`);
+  assert.ok(Math.abs(r.distKm - 0.11) < 0.02, `dist ${r.distKm}`);
+  assert.equal(proyectarEnLinea([], [-34.6, -58.4]), null);
+});
+
+test("progresoViaje por GPS: última pasada, siguiente y llegada", () => {
+  const entre12 = progresoViaje(paradasRectas, { pos: [-34.6, -58.4165], linea: via, ahora: T0 });
+  assert.equal(entre12.fuente, "gps");
+  assert.equal(entre12.ultima, 1);
+  assert.equal(entre12.siguiente, 2);
+  assert.equal(entre12.enEstacion, false);
+  const enE2 = progresoViaje(paradasRectas, { pos: [-34.6, -58.4219], linea: via });
+  assert.equal(enE2.ultima, 2);
+  assert.equal(enE2.enEstacion, true);
+  const destino = progresoViaje(paradasRectas, { pos: [-34.6, -58.433], linea: via });
+  assert.equal(destino.llego, true);
+  assert.equal(destino.siguiente, null);
+  // Sentido contrario: las paradas recorren la vía al revés.
+  const alReves = progresoViaje([...paradasRectas].reverse(), { pos: [-34.6, -58.4165], linea: via });
+  assert.equal(alReves.ultima, 1);
+  // Sin recorrido: une las paradas.
+  assert.equal(progresoViaje(paradasRectas, { pos: [-34.6, -58.4165] }).ultima, 1);
+});
+
+test("progresoViaje estimado: sin GPS o lejos de la vía usa las horas", () => {
+  const sinGps = progresoViaje(paradasRectas, { ahora: T0 + 130000 });
+  assert.equal(sinGps.fuente, "estimado");
+  assert.equal(sinGps.ultima, 1);
+  assert.equal(sinGps.enEstacion, true);
+  const lejos = progresoViaje(paradasRectas, { pos: [-34.7, -58.41], linea: via, ahora: T0 - 1000 });
+  assert.equal(lejos.fuente, "estimado");
+  assert.equal(lejos.ultima, -1);
+  assert.equal(lejos.siguiente, 0);
 });

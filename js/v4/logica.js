@@ -54,3 +54,74 @@ export function zonasTorneo(items) {
   const escritorio = items.find((e) => !zonaA.includes(e) && !zonaB.includes(e));
   return { mitad, zonaA, zonaB, escritorio };
 }
+
+/* ---------- Modo a bordo: dónde va el tren respecto de las paradas ---------- */
+
+// Plano local en km alrededor de una latitud (alcanza para un ramal).
+const aPlano = (punto, cosLat) => [punto[1] * 111.32 * cosLat, punto[0] * 110.574];
+
+// Proyecta `punto` sobre la polilínea: km recorridos desde su primer punto
+// hasta el punto más cercano, y la distancia (km) del punto a la línea.
+export function proyectarEnLinea(linea, punto) {
+  if (!linea || linea.length < 2 || !punto) return null;
+  const cosLat = Math.cos((punto[0] * Math.PI) / 180);
+  const p = aPlano(punto, cosLat);
+  let acumulado = 0;
+  let mejor = { km: 0, distKm: Infinity };
+  for (let i = 0; i < linea.length - 1; i++) {
+    const a = aPlano(linea[i], cosLat);
+    const b = aPlano(linea[i + 1], cosLat);
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const largo2 = dx * dx + dy * dy;
+    const t = largo2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / largo2)) : 0;
+    const dist = Math.hypot(p[0] - (a[0] + t * dx), p[1] - (a[1] + t * dy));
+    const largo = Math.sqrt(largo2);
+    if (dist < mejor.distKm) mejor = { km: acumulado + t * largo, distKm: dist };
+    acumulado += largo;
+  }
+  return mejor;
+}
+
+export const TOLERANCIA_ESTACION_KM = 0.15; // a menos de esto, "en la estación"
+export const MAX_FUERA_DE_VIA_KM = 1; // más lejos de la vía, el GPS no sirve
+
+/**
+ * Progreso del viaje a bordo. `paradas` va del origen al destino:
+ * [{ nombre, coords: [lat, lon] | null, hora: ms | null }].
+ * Con `pos` (GPS) proyecta sobre `linea` (recorrido real; si no hay, une las
+ * paradas); sin GPS o lejos de la vía, estima con las horas.
+ * Devuelve { ultima, siguiente, enEstacion, llego, fuente: "gps" | "estimado" }:
+ * `ultima` = índice de la última parada pasada (-1 ninguna), `siguiente` = la
+ * próxima (null al llegar).
+ */
+export function progresoViaje(paradas, { pos = null, linea = null, ahora = Date.now() } = {}) {
+  const n = paradas.length;
+  const fin = (ultima, enEstacion, fuente) => ({
+    ultima,
+    siguiente: ultima + 1 < n ? ultima + 1 : null,
+    enEstacion,
+    llego: n > 0 && ultima === n - 1,
+    fuente,
+  });
+  const conCoords = paradas.filter((p) => p.coords);
+  const via = linea && linea.length > 1 ? linea : conCoords.map((p) => p.coords);
+  const yo = pos ? proyectarEnLinea(via, pos) : null;
+  if (yo && yo.distKm <= MAX_FUERA_DE_VIA_KM && conCoords.length >= 2) {
+    const km = paradas.map((p) => (p.coords ? proyectarEnLinea(via, p.coords).km : null));
+    const conocidos = km.filter((k) => k != null);
+    const sentido = conocidos[conocidos.length - 1] >= conocidos[0] ? 1 : -1;
+    let ultima = -1;
+    km.forEach((k, i) => {
+      if (k != null && sentido * k <= sentido * yo.km + TOLERANCIA_ESTACION_KM) ultima = i;
+    });
+    const enEstacion = ultima >= 0 && km[ultima] != null && Math.abs(km[ultima] - yo.km) <= TOLERANCIA_ESTACION_KM;
+    return fin(ultima, enEstacion, "gps");
+  }
+  let ultima = -1;
+  paradas.forEach((p, i) => {
+    if (p.hora != null && p.hora <= ahora) ultima = i;
+  });
+  const enEstacion = ultima >= 0 && ahora - paradas[ultima].hora < 30000;
+  return fin(ultima, enEstacion, "estimado");
+}

@@ -18,6 +18,9 @@ data class Estacion(
     val busqueda: String,
 )
 
+/** Parada de un servicio con su hora de paso (epoch ms; estimada si hay). */
+data class Parada(val id: Int, val nombre: String, val hora: Long?)
+
 data class Viaje(val o: Int, val d: Int, val t: Long = 0)
 
 /** Un tren normalizado a partir de la respuesta de arribos. Horas en epoch ms. */
@@ -38,6 +41,8 @@ data class Tren(
     // Cabecera donde termina el servicio: da el sentido ("hacia Ezeiza").
     val haciaId: Int?,
     val hacia: String?,
+    // Paradas del servicio en orden, con hora: las usa el modo a bordo.
+    val horarios: List<Parada> = emptyList(),
 ) {
     fun aJson(): JSONObject = JSONObject()
         .put("clave", clave).put("ramal", ramal)
@@ -47,6 +52,7 @@ data class Tren(
         .putOpt("anden", anden).putOpt("llegadaDestino", llegadaDestino).putOpt("duracionMin", duracionMin)
         .putOpt("lat", ubicacion?.lat).putOpt("lon", ubicacion?.lon)
         .putOpt("haciaId", haciaId).putOpt("hacia", hacia)
+        .put("horarios", JSONArray(horarios.map { JSONObject().put("id", it.id).put("nombre", it.nombre).putOpt("hora", it.hora) }))
 
     companion object {
         fun deJson(j: JSONObject) = Tren(
@@ -65,6 +71,7 @@ data class Tren(
             ubicacion = if (j.has("lat") && j.has("lon")) LatLon(j.getDouble("lat"), j.getDouble("lon")) else null,
             haciaId = j.largo("haciaId")?.toInt(),
             hacia = j.texto("hacia"),
+            horarios = j.optJSONArray("horarios").objetos().map { Parada(it.getInt("id"), it.optString("nombre"), it.largo("hora")) },
         )
     }
 }

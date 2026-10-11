@@ -21,6 +21,7 @@ Todo cambio va en la web y en la app Android a la vez.
 - Cartel al elegir estación con el aviso más grave de su línea (5 s; tocarlo abre los avisos).
 - Cuenta regresiva del próximo tren: título de la pestaña (web) / notificación fija con
   cronómetro al salir de la app (Android 7+; en Android 6 muestra la hora).
+- "Modo andén" (botón en cada tarjeta en vivo; `js/v4/anden.js` + `css/anden.css` / `ui/Anden.kt`): cuenta regresiva enorme, pantalla siempre encendida (Wake Lock / `keepScreenOn`); "Ya subí" (o solo al llegar el tren y alejarse el GPS) pasa a "a bordo": paradas hasta el destino con la próxima resaltada, posición por GPS sobre `recorridos.json` (`progresoViaje`, `ABordo.kt`) o estimada con horas de la API, aviso al llegar.
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -66,10 +67,8 @@ Todo cambio va en la web y en la app Android a la vez.
 3. "Avisame" con la app cerrada en la web (requiere servidor push). En la app Android ya funciona.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
-Prioridad: 12 y 15.
+Prioridad: 12.
 11. Atajos: favoritos al mantener apretado el ícono (shortcuts Android + `shortcuts` del manifest).
 12. **Widget Android** con el próximo tren de un viaje favorito (web: no aplica; ya tiene título).
 13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).
 14. Alerta si el tren seguido desaparece o suma más de X min de demora.
-15. **Modo "estoy en el andén"**: pantalla grande con la cuenta regresiva, sin apagarse
-    (Wake Lock en web, `keepScreenOn` en app), legible de lejos.

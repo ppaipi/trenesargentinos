@@ -82,6 +82,7 @@ fun Tarjeta(
     destino: Estacion,
     oscuro: Boolean,
     onAvisar: () -> Unit,
+    onAnden: (() -> Unit)? = null,
 ) {
     var mapaAbierto by rememberSaveable(t.clave) { mutableStateOf(false) }
     val cs = MaterialTheme.colorScheme
@@ -155,6 +156,7 @@ fun Tarjeta(
 
                     Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         BotonSecundario(if (avisoActivo) "Aviso activo" else "Avisame", activo = avisoActivo, onClick = onAvisar)
+                        onAnden?.let { BotonSecundario("Modo andén", onClick = it) }
                         if (t.ubicacion != null) {
                             BotonSecundario(if (mapaAbierto) "Ocultar" else "Ver mapa") { mapaAbierto = !mapaAbierto }
                         }
