@@ -61,6 +61,7 @@ import ar.chiqui.trenes.datos.Estaciones
 import ar.chiqui.trenes.datos.LINEAS_PRINCIPALES
 import ar.chiqui.trenes.datos.Ruta
 import ar.chiqui.trenes.datos.formatearDistancia
+import ar.chiqui.trenes.datos.zonasTorneo
 
 /** Qué muestra el buscador cuando no hay texto escrito. */
 sealed interface Vista {
@@ -227,10 +228,7 @@ private fun FilaEstacion(e: Estacion, extra: String, onElegir: (Estacion) -> Uni
 @Composable
 private fun ListaZonas(lista: List<Estacion>, onElegir: (Estacion) -> Unit, modifier: Modifier) {
     val n = lista.size
-    val mitad = n / 2
-    val zonaA = lista.filterIndexed { i, _ -> i % 2 == 0 }.take(mitad)
-    val zonaB = lista.filterIndexed { i, _ -> i % 2 == 1 }.take(mitad)
-    val escritorio = (lista - zonaA.toSet() - zonaB.toSet()).firstOrNull()
+    val (mitad, zonaA, zonaB, escritorio) = zonasTorneo(lista)
     val oro = Color(0xFFFFD23F)
     val verde = Color(0xFF0A7D3B)
     @Composable

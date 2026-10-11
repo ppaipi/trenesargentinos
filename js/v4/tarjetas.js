@@ -1,27 +1,12 @@
 import { crearMapaTren } from "./mapa-tren.js";
+import { hora, cuentaRegresiva } from "./logica.js";
 
-const fmtHora = new Intl.DateTimeFormat("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false });
-
-export const hora = (d) => (d ? fmtHora.format(d) : "--:--");
+export { hora, cuentaRegresiva };
 
 export function duracion(min) {
   if (min == null || min < 0) return "";
   if (min < 60) return `${min} min`;
   return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}`;
-}
-
-// Cuenta regresiva con segundos siempre: MM:SS, o H:MM:SS si falta mas de 1 h.
-export function cuentaRegresiva(referencia, ahora = Date.now()) {
-  const seg = Math.floor((referencia - ahora) / 1000);
-  if (seg < -120) return { num: hora(referencia), uni: "ya pasó" }; // horarios programados de antes
-  if (seg <= 0) return { num: "YA", uni: "en andén", ya: true };
-  const dos = (n) => String(n).padStart(2, "0");
-  const h = Math.floor(seg / 3600);
-  const m = Math.floor((seg % 3600) / 60);
-  const s = seg % 60;
-  if (h >= 24) return { num: hora(referencia), uni: referencia.toLocaleDateString("es-AR", { weekday: "short" }) };
-  if (h > 0) return { num: `${h}:${dos(m)}:${dos(s)}`, uni: "h  min  seg" };
-  return { num: `${dos(m)}:${dos(s)}`, uni: "min  seg" };
 }
 
 function el(tag, clase, texto) {

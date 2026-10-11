@@ -1,3 +1,7 @@
+import { distanciaKm, ordenarGeografico } from "./logica.js";
+
+export { distanciaKm };
+
 export const COLOR_LINEA = {
   "Mitre": "var(--linea-mitre)",
   "Sarmiento": "var(--linea-sarmiento)",
@@ -12,38 +16,12 @@ export const COLOR_LINEA = {
 
 export const LINEAS_PRINCIPALES = ["Mitre", "Sarmiento", "Roca", "San Martín", "Belgrano Sur", "Tren de la Costa"];
 
-// Punto de referencia para elegir la cabecera de cada ramal: la estacion
-// del ramal mas cercana al centro porteño (Retiro, Once, Constitucion, etc).
-const CENTRO = [-34.6037, -58.3816];
-
 let estaciones = [];
 let porId = new Map();
 let rutaIndice = new Map(); // "linea|||ramal" -> estaciones[] en orden geografico
 
 export function normalizar(texto) {
   return texto.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-}
-
-export function distanciaKm([lat1, lon1], [lat2, lon2]) {
-  const rad = Math.PI / 180;
-  const dLat = (lat2 - lat1) * rad;
-  const dLon = (lon2 - lon1) * rad;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(a));
-}
-
-// Ordena las estaciones de un ramal desde la cabecera hacia afuera. Las que
-// no tienen coordenadas quedan al final en orden alfabetico.
-function ordenarGeografico(lista) {
-  const conCoords = lista.filter((e) => e.coords);
-  const sinCoords = lista.filter((e) => !e.coords).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-  if (conCoords.length === 0) return sinCoords;
-
-  const cabecera = conCoords.reduce((mejor, e) =>
-    distanciaKm(e.coords, CENTRO) < distanciaKm(mejor.coords, CENTRO) ? e : mejor
-  );
-  conCoords.sort((a, b) => distanciaKm(a.coords, cabecera.coords) - distanciaKm(b.coords, cabecera.coords));
-  return [...conCoords, ...sinCoords];
 }
 
 export async function cargarEstaciones() {

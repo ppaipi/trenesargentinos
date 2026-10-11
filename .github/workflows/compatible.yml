@@ -1,0 +1,56 @@
+# Regenera js/compat/ (herramientas/compatible.sh) en cada push a main que toque
+# js/ o herramientas/, y commitea el resultado si cambió. El push con
+# GITHUB_TOKEN no redispara workflows, así que no hay bucle.
+name: Compilar js/compat
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/**'
+      - '!js/compat/**'
+      - 'herramientas/**'
+      - 'tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: compatible
+  cancel-in-progress: false
+
+jobs:
+  compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache de npx (esbuild)
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npx-${{ runner.os }}-${{ hashFiles('herramientas/compatible.sh') }}
+
+      - name: Tests
+        run: npm test
+
+      - name: Compilar
+        run: bash herramientas/compatible.sh
+
+      - name: Commitear si cambió
+        run: |
+          if git diff --quiet -- js/compat && [ -z "$(git ls-files --others --exclude-standard js/compat)" ]; then
+            echo "js/compat sin cambios"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/compat
+          git commit -m "js/compat: recompilado automático (${GITHUB_SHA::7})"
+          git pull --rebase origin main
+          git push origin HEAD:main

@@ -13,6 +13,14 @@ val firma = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 
+// versionCode = cantidad de commits (Play exige que crezca). Sin git: 1.
+val conteoCommits: Int = try {
+    providers.exec {
+        commandLine("git", "rev-list", "--count", "HEAD")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim().toIntOrNull() ?: 1
+} catch (e: Exception) { 1 }
+
 android {
     namespace = "ar.chiqui.trenes"
     compileSdk = 35
@@ -21,7 +29,7 @@ android {
         applicationId = "ar.chiqui.trenes"
         minSdk = 23 // Android 6: lo que no existe ahí se oculta (ver Build.VERSION en el código)
         targetSdk = 35
-        versionCode = 1
+        versionCode = conteoCommits
         versionName = "1.0"
     }
 
@@ -77,6 +85,7 @@ androidComponents {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation(platform("androidx.compose:compose-bom:2024.10.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")

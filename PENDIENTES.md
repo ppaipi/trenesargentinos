@@ -36,6 +36,13 @@ Todo cambio va en la web y en la app Android a la vez.
   subir `recorridos.json?v=N` en `js/v4/mapa-tren.js`.
 - Mapa base: Argenmap (IGN, TMS) con respaldo CARTO.
 
+## Tests y CI
+- Tests: `npm test` (Node, `tests/`, lógica pura en `js/v4/logica.js`) y
+  `cd android && JAVA_HOME=~/Android/jdk ./gradlew :app:testDebugUnitTest` (`LogicaTest.kt`).
+- `.github/workflows/compatible.yml`: en cada push a main corre los tests y
+  `compatible.sh`, y commitea `js/compat/` si cambió.
+- App: `versionCode` = `git rev-list --count HEAD` (no compilar desde clon superficial).
+
 ## Pendientes
 1. Investigar si la API trae estado de ascensores/escaleras. El repo de referencia
    `alandaitch/anden` no documenta endpoints a propósito; tantear la API lo bloquea
@@ -60,9 +67,6 @@ Todo cambio va en la web y en la app Android a la vez.
 
 ## Próximas mejoras (orden propuesto; hacer de a una, con paridad web/app)
 Prioridad: 12 y 15.
-8. GitHub Action que corra `herramientas/compatible.sh` en cada push (no olvidarlo).
-9. `versionCode` automático en la app (sigue en 1; Play lo exige creciente).
-10. Tests mínimos: cuenta regresiva, Torneo Chiqui (zonas), orden de cabecera (Node + JUnit).
 11. Atajos: favoritos al mantener apretado el ícono (shortcuts Android + `shortcuts` del manifest).
 12. **Widget Android** con el próximo tren de un viaje favorito (web: no aplica; ya tiene título).
 13. Mapa con recorrido para Urquiza y Belgrano Norte (programados).

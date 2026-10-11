@@ -34,6 +34,31 @@ fun distanciaKm(a: LatLon, b: LatLon): Double {
 fun formatearDistancia(km: Double): String =
     if (km < 1) "${(km * 1000).toInt()} m" else String.format(Locale("es", "AR"), "%.1f km", km)
 
+// Ordena un ramal desde la cabecera hacia afuera. Las que no tienen
+// coordenadas quedan al final en orden alfabético.
+fun ordenarGeografico(lista: List<Estacion>): List<Estacion> {
+    val con = lista.filter { it.coords != null }
+    val sin = lista.filter { it.coords == null }.sortedWith(compareBy(COLLATOR) { it.nombre })
+    if (con.isEmpty()) return sin
+    val cabecera = con.minBy { distanciaKm(it.coords!!, CENTRO) }.coords!!
+    return con.sortedBy { distanciaKm(it.coords!!, cabecera) } + sin
+}
+
+/**
+ * Meme del torneo de 30 equipos en 2 zonas de 15: el ramal se parte en
+ * "Zona A" y "Zona B" de n/2 estaciones, salteadas (no trates de entenderlo).
+ * Si n es impar, la que sobra "asciende por escritorio". Igual que la web.
+ */
+data class Zonas<T>(val mitad: Int, val zonaA: List<T>, val zonaB: List<T>, val escritorio: T?)
+
+fun <T> zonasTorneo(lista: List<T>): Zonas<T> {
+    val mitad = lista.size / 2
+    val zonaA = lista.filterIndexed { i, _ -> i % 2 == 0 }.take(mitad)
+    val zonaB = lista.filterIndexed { i, _ -> i % 2 == 1 }.take(mitad)
+    val escritorio = (lista - zonaA.toSet() - zonaB.toSet()).firstOrNull()
+    return Zonas(mitad, zonaA, zonaB, escritorio)
+}
+
 /** Estaciones y recorridos, leídos de los mismos JSON del sitio (assets). */
 object Estaciones {
     var todas: List<Estacion> = emptyList()
@@ -66,16 +91,6 @@ object Estaciones {
         indice = rutas.mapValues { ordenarGeografico(it.value) }
         porId = lista.associateBy { it.id }
         todas = lista
-    }
-
-    // Ordena un ramal desde la cabecera hacia afuera. Las que no tienen
-    // coordenadas quedan al final en orden alfabético.
-    private fun ordenarGeografico(lista: List<Estacion>): List<Estacion> {
-        val con = lista.filter { it.coords != null }
-        val sin = lista.filter { it.coords == null }.sortedWith(compareBy(COLLATOR) { it.nombre })
-        if (con.isEmpty()) return sin
-        val cabecera = con.minBy { distanciaKm(it.coords!!, CENTRO) }.coords!!
-        return con.sortedBy { distanciaKm(it.coords!!, cabecera) } + sin
     }
 
     fun porId(id: Int): Estacion? = porId[id]

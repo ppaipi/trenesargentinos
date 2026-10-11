@@ -16,6 +16,7 @@ const ARCHIVOS_PRECACHE = [
   "/js/v4/buscador.js",
   "/js/v4/estaciones.js",
   "/js/v4/extras.js",
+  "/js/v4/logica.js",
   "/js/v4/mapa-tren.js",
   "/js/v4/patrocinio.js",
   "/js/v4/tarjetas.js",

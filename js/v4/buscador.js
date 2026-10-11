@@ -8,6 +8,7 @@ import {
   buscarPorTexto,
   formatearDistancia,
 } from "./estaciones.js";
+import { zonasTorneo } from "./logica.js";
 
 /**
  * Buscador de estaciones: texto libre + navegacion linea → ramal → estaciones
@@ -97,10 +98,7 @@ export function crearBuscadorEstacion({ input, panel, chips, lista, obtenerOtra,
   function renderZonas(items) {
     prepararVista(true);
     const n = items.length;
-    const mitad = Math.floor(n / 2);
-    const zonaA = items.filter((_, i) => i % 2 === 0).slice(0, mitad);
-    const zonaB = items.filter((_, i) => i % 2 === 1).slice(0, mitad);
-    const escritorio = items.find((e) => !zonaA.includes(e) && !zonaB.includes(e));
+    const { mitad, zonaA, zonaB, escritorio } = zonasTorneo(items);
 
     const cabecera = document.createElement("li");
     cabecera.className = "torneo-cabecera";
