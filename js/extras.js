@@ -116,6 +116,18 @@ export function iniciarPWA(contenedor) {
     apk.setAttribute("download", "TrenAR.apk");
     apk.textContent = "Descargar app Android (APK)";
     acciones.appendChild(apk);
+    // Si la última Release ya trae el APK con versión en el nombre, se baja ese
+    // (evita "TrenAR (1).apk"); si GitHub no responde, queda el link fijo.
+    fetch("https://api.github.com/repos/ppaipi/trenesargentinos/releases/latest")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((ultima) => {
+        const tag = ultima && ultima.tag_name;
+        const nombre = "TrenAR-" + tag + ".apk";
+        if (!tag || !(ultima.assets || []).some((a) => a.name === nombre)) return;
+        apk.href = "https://github.com/ppaipi/trenesargentinos/releases/download/" + tag + "/" + nombre;
+        apk.setAttribute("download", nombre);
+      })
+      .catch(() => {});
   }
 
   let eventoInstalar = null;

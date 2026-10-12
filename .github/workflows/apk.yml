@@ -1,7 +1,8 @@
 # Compila la app Android firmada en cada push a main que toque la app (o los
 # JSON que se copian a sus assets) y la publica como Release "TrenAR vX.Y.N".
-# El link fijo .../releases/latest/download/TrenAR.apk siempre baja la última
-# (lo usan el botón del pie de la web y el README).
+# Sube dos copias del mismo APK: TrenAR-vX.Y.N.apk (nombre por versión; la usa la
+# app para actualizarse y la web, así no quedan "TrenAR (1).apk") y TrenAR.apk, cuyo
+# link fijo .../releases/latest/download/TrenAR.apk usan el README y apps viejas.
 #
 # Secrets necesarios (Settings > Secrets and variables > Actions; cargados oct 2026):
 #   ANDROID_KEYSTORE_BASE64  base64 -w0 ~/Android/trenes-subida.jks
@@ -79,7 +80,9 @@ jobs:
         id: version
         run: |
           nombre=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' android/app/build.gradle.kts)
-          echo "tag=v${nombre}.$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+          tag="v${nombre}.$(git rev-list --count HEAD)"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          cp TrenAR.apk "TrenAR-$tag.apk"
 
       - name: Publicar Release
         uses: softprops/action-gh-release@v2
@@ -88,9 +91,11 @@ jobs:
           name: TrenAR ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
           make_latest: true
-          files: TrenAR.apk
+          files: |
+            TrenAR.apk
+            TrenAR-${{ steps.version.outputs.tag }}.apk
           body: |
-            **[Descargar TrenAR.apk](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/TrenAR.apk)** · Android 6 o superior.
+            **[Descargar TrenAR-${{ steps.version.outputs.tag }}.apk](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/TrenAR-${{ steps.version.outputs.tag }}.apk)** · Android 6 o superior.
 
             Instalalo encima de la versión anterior: tus favoritos quedan.
 

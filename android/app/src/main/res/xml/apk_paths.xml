@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Carpeta donde Instalador baja el APK nuevo (getExternalFilesDir(DIRECTORY_DOWNLOADS)). -->
+<paths>
+    <external-files-path name="apk" path="Download/" />
+</paths>

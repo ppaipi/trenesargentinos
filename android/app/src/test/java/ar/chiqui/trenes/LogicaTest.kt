@@ -129,6 +129,15 @@ class LogicaTest {
     }
 
     @Test
+    fun actualizacion_archivo_por_version() {
+        assertEquals("TrenAR-v1.0.204.apk", Actualizacion.archivo("v1.0.204"))
+        assertEquals(
+            "https://github.com/ppaipi/trenesargentinos/releases/download/v1.0.204/TrenAR-v1.0.204.apk",
+            Actualizacion.descarga("v1.0.204"),
+        )
+    }
+
+    @Test
     fun widget_tamano() {
         assertEquals(Tamano.GRANDE, tamano(0)) // launcher que no informa el alto
         assertEquals(Tamano.GRANDE, tamano(180))

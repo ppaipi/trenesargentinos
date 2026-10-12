@@ -2,10 +2,9 @@ package ar.chiqui.trenes.ui
 
 import android.Manifest
 import ar.chiqui.trenes.datos.Actualizacion
+import ar.chiqui.trenes.datos.Instalador
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.TextButton
-import android.net.Uri
-import android.content.Intent
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -308,10 +307,11 @@ private fun Tarjetita(contenido: @Composable RowScope.() -> Unit) {
     )
 }
 
-/** Hay un APK más nuevo en Releases: lo baja el navegador y Android pregunta si instalarlo. */
+/** Hay un APK más nuevo en Releases: la app lo baja y abre el instalador de Android. */
 @Composable
 private fun AvisoActualizacion(tag: String, onCerrar: () -> Unit) {
     val ctx = LocalContext.current
+    var descargando by remember { mutableStateOf(false) }
     Row(
         Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(12.dp)).clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surface).padding(start = 16.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
@@ -319,10 +319,16 @@ private fun AvisoActualizacion(tag: String, onCerrar: () -> Unit) {
     ) {
         Column(Modifier.weight(1f)) {
             Text("Hay una versión nueva", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-            Text("TrenAR $tag · tus favoritos quedan", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                if (descargando) "Bajando TrenAR $tag… mirá el avance en las notificaciones" else "TrenAR $tag · tus favoritos quedan",
+                fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        BotonSecundario("Actualizar", activo = true) {
-            runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Actualizacion.DESCARGA))) }
+        BotonSecundario(if (descargando) "Bajando…" else "Actualizar", activo = !descargando) {
+            if (!descargando) {
+                descargando = true
+                Instalador.actualizar(ctx, tag) { descargando = false }
+            }
         }
         TextButton(onCerrar) { Text("✕", color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }

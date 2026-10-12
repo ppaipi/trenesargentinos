@@ -9,11 +9,17 @@ import java.net.URL
 /**
  * Versión nueva del APK: el workflow apk.yml publica cada build como Release de GitHub
  * con tag "v1.0.N", donde N = versionCode (cantidad de commits). Si N supera al instalado,
- * la app muestra "Actualizar", que baja el APK con el navegador.
+ * la app muestra "Actualizar": Instalador baja "TrenAR-vX.Y.N.apk" y abre el instalador.
+ * DESCARGA (link fijo) queda para versiones viejas de la app, la web y el README.
  */
 object Actualizacion {
     const val DESCARGA = "https://github.com/ppaipi/trenesargentinos/releases/latest/download/TrenAR.apk"
     private const val ULTIMA = "https://api.github.com/repos/ppaipi/trenesargentinos/releases/latest"
+
+    /** Cada versión con su nombre: sin "TrenAR (1).apk", "TrenAR (2).apk". */
+    fun archivo(tag: String) = "TrenAR-$tag.apk"
+
+    fun descarga(tag: String) = "https://github.com/ppaipi/trenesargentinos/releases/download/$tag/${archivo(tag)}"
 
     /** "v1.0.204" -> 204 (lógica pura, probada en LogicaTest). */
     fun numero(tag: String): Int? = tag.substringAfterLast('.').toIntOrNull()
