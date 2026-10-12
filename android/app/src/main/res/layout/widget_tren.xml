@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Widget del próximo tren (RemoteViews: solo vistas permitidas).
      Cabecera con logo y trayecto, cuenta regresiva grande, hora de salida y el
-     siguiente tren en una pastilla. -->
+     siguiente tren en una pastilla. Según el alto (WidgetTren.tamano) se ocultan
+     la pastilla, el estado y la cabecera; la cuenta regresiva siempre queda. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/w_raiz"
     android:layout_width="match_parent"
@@ -14,6 +15,7 @@
     android:paddingBottom="12dp">
 
     <LinearLayout
+        android:id="@+id/w_cabecera"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"

@@ -11,6 +11,8 @@ import ar.chiqui.trenes.datos.Tren
 import ar.chiqui.trenes.ui.cuentaRegresiva
 import ar.chiqui.trenes.widget.faltanTexto
 import ar.chiqui.trenes.widget.proximoTick
+import ar.chiqui.trenes.widget.Tamano
+import ar.chiqui.trenes.widget.tamano
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
@@ -124,5 +126,13 @@ class LogicaTest {
         assertEquals(204, Actualizacion.numero("v1.0.204"))
         assertEquals(7, Actualizacion.numero("v2.1.7"))
         assertNull(Actualizacion.numero("sin-numero"))
+    }
+
+    @Test
+    fun widget_tamano() {
+        assertEquals(Tamano.GRANDE, tamano(0)) // launcher que no informa el alto
+        assertEquals(Tamano.GRANDE, tamano(180))
+        assertEquals(Tamano.MEDIANO, tamano(100))
+        assertEquals(Tamano.CHICO, tamano(60))
     }
 }

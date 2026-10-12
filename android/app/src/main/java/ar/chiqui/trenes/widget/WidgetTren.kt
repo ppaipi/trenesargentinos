@@ -7,9 +7,11 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
+import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import ar.chiqui.trenes.MainActivity
@@ -36,6 +38,15 @@ fun faltanTexto(referencia: Long, ahora: Long): String? {
     }
 }
 
+enum class Tamano { CHICO, MEDIANO, GRANDE }
+
+/** Qué entra según el alto en dp: GRANDE todo, MEDIANO sin pastilla ni estado, CHICO una fila. */
+fun tamano(altoDp: Int): Tamano = when {
+    altoDp <= 0 || altoDp >= 120 -> Tamano.GRANDE
+    altoDp >= 85 -> Tamano.MEDIANO
+    else -> Tamano.CHICO
+}
+
 /** Cuándo volver a dibujar: al minuto, o apenas sale el próximo tren (nunca antes de 15 s). */
 fun proximoTick(trenes: List<Tren>, ahora: Long): Long {
     val sale = trenes.map { it.referencia + 5000 }.filter { it > ahora }.minOrNull() ?: Long.MAX_VALUE
@@ -51,6 +62,10 @@ fun proximoTick(trenes: List<Tren>, ahora: Long): Long {
 class WidgetTren : AppWidgetProvider() {
 
     override fun onUpdate(ctx: Context, mgr: AppWidgetManager, ids: IntArray) = trabajar(ctx, red = true)
+
+    // Lo achicaron o agrandaron: se redibuja con lo que entra.
+    override fun onAppWidgetOptionsChanged(ctx: Context, mgr: AppWidgetManager, id: Int, opciones: android.os.Bundle) =
+        trabajar(ctx, red = false)
 
     override fun onReceive(ctx: Context, intent: Intent) {
         when (intent.action) {
@@ -198,10 +213,18 @@ class WidgetTren : AppWidgetProvider() {
             setOnClickPendingIntent(R.id.w_refrescar, refrescar(ctx))
         }
 
+        /** Alto actual del widget en dp (en vertical el launcher informa el máximo). */
+        private fun altoDp(ctx: Context, id: Int): Int {
+            val op = AppWidgetManager.getInstance(ctx).getAppWidgetOptions(id)
+            val vertical = ctx.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+            return op.getInt(if (vertical) AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT else AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+        }
+
         private fun vista(
             ctx: Context, id: Int, v: Viaje, guardado: Pair<Long, List<Tren>>?,
             cargando: Boolean = false, error: Boolean = false,
         ) = RemoteViews(ctx.packageName, R.layout.widget_tren).apply {
+            val t = tamano(altoDp(ctx, id))
             val o = Estaciones.porId(v.o)?.nombre ?: "?"
             val d = Estaciones.porId(v.d)?.nombre ?: "?"
             setTextViewText(R.id.w_trayecto, "$o → $d")
@@ -222,7 +245,15 @@ class WidgetTren : AppWidgetProvider() {
                 setTextViewText(R.id.w_hora, if (cargando) "Buscando trenes…" else "Sin próximos trenes")
                 setTextViewText(R.id.w_siguiente, "Tocá para ver el viaje")
             } else {
-                setTextViewText(R.id.w_hora, "Sale a las ${hora(primero.referencia)}" + (primero.anden?.let { " · andén $it" } ?: ""))
+                val sale = hora(primero.referencia)
+                setTextViewText(
+                    R.id.w_hora,
+                    when (t) {
+                        Tamano.GRANDE -> "Sale a las $sale" + (primero.anden?.let { " · andén $it" } ?: "")
+                        Tamano.MEDIANO -> "Sale $sale" + (segundo?.let { " · después ${hora(it.referencia)}" } ?: "")
+                        Tamano.CHICO -> "$o → $d · $sale"
+                    },
+                )
                 val falta = primero.referencia - ahora
                 if (Build.VERSION.SDK_INT >= 24 && falta > 0 && falta < 3600000) {
                     // Cuenta regresiva en vivo con segundos, la corre el launcher.
@@ -240,6 +271,15 @@ class WidgetTren : AppWidgetProvider() {
                     segundo?.let { "Después: ${hora(it.referencia)} · ${faltanTexto(it.referencia, ahora)}" } ?: "Sin otro tren por ahora",
                 )
             }
+            // Achicado: la cuenta regresiva manda; lo demás se esconde.
+            val chico = t == Tamano.CHICO
+            setViewVisibility(R.id.w_cabecera, if (chico) View.GONE else View.VISIBLE)
+            setViewVisibility(R.id.w_siguiente, if (t == Tamano.GRANDE) View.VISIBLE else View.GONE)
+            setViewVisibility(R.id.w_estado, if (t == Tamano.GRANDE) View.VISIBLE else View.GONE)
+            setTextViewTextSize(R.id.w_cuenta, TypedValue.COMPLEX_UNIT_SP, if (chico) 28f else 38f)
+            setTextViewTextSize(R.id.w_faltan, TypedValue.COMPLEX_UNIT_SP, if (chico) 24f else 30f)
+            val pad = (if (chico) 8 else 12) * ctx.resources.displayMetrics.density
+            setViewPadding(R.id.w_raiz, (16 * ctx.resources.displayMetrics.density).toInt(), pad.toInt(), (10 * ctx.resources.displayMetrics.density).toInt(), pad.toInt())
             setTextViewText(
                 R.id.w_estado,
                 when {
