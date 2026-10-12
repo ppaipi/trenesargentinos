@@ -10,7 +10,7 @@
 para los trenes del AMBA. En la web, en el celular y como app Android.
 
 [![Web](https://img.shields.io/badge/Abrir_la_web-tapia.chiqui.ar-1e88e5?style=for-the-badge&logo=googlechrome&logoColor=white)](https://tapia.chiqui.ar)
-[![Descargar APK](https://img.shields.io/badge/Descargar-APK_Android-3ddc84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/ppaipi/trenesargentinos/releases/latest/download/TrenAR.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar-APK_Android-3ddc84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/ppaipi/trenesargentinos/releases/latest)
 
 ![Android 6+](https://img.shields.io/badge/Android-6.0%2B-3ddc84?logo=android&logoColor=white)
 ![iOS](https://img.shields.io/badge/iPhone-app_web-000000?logo=apple&logoColor=white)
@@ -49,7 +49,7 @@ para los trenes del AMBA. En la web, en el celular y como app Android.
 
 ### Android: app nativa
 
-1. Descargá **[TrenAR.apk](https://github.com/ppaipi/trenesargentinos/releases/latest/download/TrenAR.apk)**
+1. Descargá el APK de la **[última versión](https://github.com/ppaipi/trenesargentinos/releases/latest)**
    (también está el botón **Descargar app Android** al pie de la web,
    y todas las versiones en [Releases](https://github.com/ppaipi/trenesargentinos/releases)).
 2. Abrí el archivo. Si Android lo pide, permití **Instalar apps desconocidas** para tu navegador.
@@ -136,8 +136,8 @@ Cada push a `main`:
 - despliega la web en GitHub Pages ([tapia.chiqui.ar](https://tapia.chiqui.ar));
 - recompila `js/compat/` si cambió `js/`;
 - si cambió la app (`android/` o los JSON de datos), compila el APK firmado y lo publica en
-  [Releases](https://github.com/ppaipi/trenesargentinos/releases). El link
-  `releases/latest/download/TrenAR.apk` siempre baja el último.
+  [Releases](https://github.com/ppaipi/trenesargentinos/releases). Cada APK lleva la versión en
+  el nombre (`TrenAR-v1.0.N.apk`); `releases/latest` siempre muestra el último.
 
 ---
 

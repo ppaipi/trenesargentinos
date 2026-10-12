@@ -10,10 +10,10 @@ import java.net.URL
  * Versión nueva del APK: el workflow apk.yml publica cada build como Release de GitHub
  * con tag "v1.0.N", donde N = versionCode (cantidad de commits). Si N supera al instalado,
  * la app muestra "Actualizar": Instalador baja "TrenAR-vX.Y.N.apk" y abre el instalador.
- * DESCARGA (link fijo) queda para versiones viejas de la app, la web y el README.
+ * Si la descarga falla, DESCARGA abre la página de la última Release en el navegador.
  */
 object Actualizacion {
-    const val DESCARGA = "https://github.com/ppaipi/trenesargentinos/releases/latest/download/TrenAR.apk"
+    const val DESCARGA = "https://github.com/ppaipi/trenesargentinos/releases/latest"
     private const val ULTIMA = "https://api.github.com/repos/ppaipi/trenesargentinos/releases/latest"
 
     /** Cada versión con su nombre: sin "TrenAR (1).apk", "TrenAR (2).apk". */
