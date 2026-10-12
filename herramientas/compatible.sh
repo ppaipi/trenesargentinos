@@ -6,4 +6,4 @@ set -e
 cd "$(dirname "$0")/.."
 OPC=(--bundle --format=iife --minify --target=chrome55,safari11,firefox57 --banner:js="$(cat herramientas/polyfills.js)")
 npx --yes esbuild@0.24.0 js/compat-entrada.js "${OPC[@]}" --outfile=js/compat/app.js
-npx --yes esbuild@0.24.0 js/v4/patrocinio.js "${OPC[@]}" --outfile=js/compat/patrocinio.js
+npx --yes esbuild@0.24.0 js/patrocinio.js "${OPC[@]}" --outfile=js/compat/patrocinio.js

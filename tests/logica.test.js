@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cuentaRegresiva, zonasTorneo, ordenarGeografico, detectarCambioTren, proyectarEnLinea, progresoViaje } from "../js/v4/logica.js";
+import { cuentaRegresiva, zonasTorneo, ordenarGeografico, detectarCambioTren, proyectarEnLinea, progresoViaje } from "../js/logica.js";
 
 test("tren seguido: desaparece, suma demora, poca demora y ya pasó", () => {
   const base = en(10 * 60);

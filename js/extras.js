@@ -108,11 +108,11 @@ export function iniciarPWA(contenedor) {
   acciones.className = "pie-descargas";
   contenedor.appendChild(acciones);
 
-  // APK de Android: se publica en el mismo sitio (herramientas/publicar-apk.sh).
+  // APK de Android: lo publica el workflow apk.yml como Release de GitHub.
   if (!esIOS && !instalada) {
     const apk = document.createElement("a");
     apk.className = "boton-secundario boton-descarga";
-    apk.href = "descargas/TrenAR.apk";
+    apk.href = "https://github.com/ppaipi/trenesargentinos/releases/latest/download/TrenAR.apk";
     apk.setAttribute("download", "TrenAR.apk");
     apk.textContent = "Descargar app Android (APK)";
     acciones.appendChild(apk);

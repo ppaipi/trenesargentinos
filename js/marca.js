@@ -1,6 +1,6 @@
 // v6: panel "Acerca de" (botón ?) y el modo meme (botón del ojo, o 5 toques
 // seguidos al logo). El meme se guarda y se aplica recargando: el patrocinio
-// (js/v4/patrocinio.js) se engancha al arranque de app.js.
+// (js/patrocinio.js) se engancha al arranque de app.js.
 const $ = (id) => document.getElementById(id);
 const panel = $("panelAcerca");
 const CLAVE = "trenAR.meme";

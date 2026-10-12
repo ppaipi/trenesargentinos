@@ -22,11 +22,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
-  <link rel="stylesheet" href="css/v4.css">
-  <link rel="stylesheet" href="css/v4-avisos-mapa.css">
-  <link rel="stylesheet" href="css/v5-programados.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/avisos-mapa.css">
+  <link rel="stylesheet" href="css/programados.css">
   <link rel="stylesheet" href="css/patrocinio.css">
-  <link rel="stylesheet" href="css/v6-marca.css">
+  <link rel="stylesheet" href="css/marca.css">
   <link rel="stylesheet" href="css/anden.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
@@ -127,7 +127,6 @@
 
   <footer class="pie">
     <p>Datos de <a href="https://www.argentina.gob.ar/transporte/trenes-argentinos" rel="noopener" target="_blank">Trenes Argentinos</a>. App no oficial.</p>
-    <p><a href="gps.html">Mapa en vivo</a> · <a href="clasica.html">Versión clásica</a></p>
   </footer>
 
 
@@ -169,10 +168,10 @@
       var js = function (src, tipo) { html += "<script " + tipo + ' src="' + src + '"><\/script>'; };
       if (moderno) {
         js("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js", "defer");
-        if (meme) js("js/v4/patrocinio.js", 'type="module"');
-        js("js/v4/app.js", 'type="module"');
-        js("js/v5/programados.js", 'type="module"');
-        js("js/v6/marca.js", 'type="module"');
+        if (meme) js("js/patrocinio.js", 'type="module"');
+        js("js/app.js", 'type="module"');
+        js("js/programados.js", 'type="module"');
+        js("js/marca.js", 'type="module"');
       } else {
         js("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js", "");
         if (meme) js("js/compat/patrocinio.js", "");

@@ -10,7 +10,7 @@
 para los trenes del AMBA. En la web, en el celular y como app Android.
 
 [![Web](https://img.shields.io/badge/Abrir_la_web-tapia.chiqui.ar-1e88e5?style=for-the-badge&logo=googlechrome&logoColor=white)](https://tapia.chiqui.ar)
-[![Descargar APK](https://img.shields.io/badge/Descargar-APK_Android-3ddc84?style=for-the-badge&logo=android&logoColor=white)](https://tapia.chiqui.ar/descargas/TrenAR.apk)
+[![Descargar APK](https://img.shields.io/badge/Descargar-APK_Android-3ddc84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/ppaipi/trenesargentinos/releases/latest/download/TrenAR.apk)
 
 ![Android 6+](https://img.shields.io/badge/Android-6.0%2B-3ddc84?logo=android&logoColor=white)
 ![iOS](https://img.shields.io/badge/iPhone-app_web-000000?logo=apple&logoColor=white)
@@ -49,8 +49,9 @@ para los trenes del AMBA. En la web, en el celular y como app Android.
 
 ### Android: app nativa
 
-1. Descargá **[TrenAR.apk](https://tapia.chiqui.ar/descargas/TrenAR.apk)**
-   (también está el botón **Descargar app Android** al pie de la web).
+1. Descargá **[TrenAR.apk](https://github.com/ppaipi/trenesargentinos/releases/latest/download/TrenAR.apk)**
+   (también está el botón **Descargar app Android** al pie de la web,
+   y todas las versiones en [Releases](https://github.com/ppaipi/trenesargentinos/releases)).
 2. Abrí el archivo. Si Android lo pide, permití **Instalar apps desconocidas** para tu navegador.
 3. Listo. Para actualizar, descargá el APK nuevo e instalalo encima: tus favoritos quedan.
 
@@ -79,7 +80,7 @@ Entrá a **[tapia.chiqui.ar](https://tapia.chiqui.ar)**. En Chrome o Edge podés
 ```
  Navegador / App Android
         │
-        ├── index.html + js/v4, js/v5, js/v6  ── web (GitHub Pages, sin build)
+        ├── index.html + js/                  ── web (GitHub Pages, sin build)
         ├── android/  (Kotlin + Jetpack Compose) ── app nativa, misma lógica
         │
         └──▶ API de Trenes Argentinos (SOFSE)
@@ -98,18 +99,17 @@ Entrá a **[tapia.chiqui.ar](https://tapia.chiqui.ar)**. En Chrome o Edge podés
 ### Estructura
 
 ```
-index.html            la web (todo vive acá)
-js/v4/                app, buscador, avisos, mapa, modo andén, lógica
-js/v5/                líneas programadas (Urquiza, Belgrano Norte)
-js/v6/                marca, panel "Acerca de"
-js/compat/            build para navegadores viejos (lo genera CI)
-css/                  estilos
+index.html            la web (una sola página)
+js/                   módulos: app, buscador, avisos, mapa-tren, anden, programados, marca...
+js/compat/            la misma app para navegadores viejos (la genera CI)
+css/                  base, avisos-mapa, programados, anden, marca, patrocinio
+img/                  logo e imágenes
 android/              app nativa Kotlin + Compose
-descargas/TrenAR.apk  APK publicado (lo sirve GitHub Pages)
-herramientas/         compatible.sh, publicar-apk.sh, recorrido.py
+herramientas/         compatible.sh (build compat), recorrido.py (trazado sobre vías)
 tests/                tests de la lógica (node --test)
 estaciones*.json      estaciones y coordenadas
 recorridos.json       polilíneas de cada ramal
+.github/workflows/    deploy de la web, build compat y APK
 ```
 
 ---
@@ -129,12 +129,15 @@ bash herramientas/compatible.sh
 # App Android (JDK 17 + Android SDK)
 cd android && ./gradlew assembleDebug
 cd android && ./gradlew :app:testDebugUnitTest
-
-# Publicar un APK nuevo en la web (requiere la clave de firma)
-bash herramientas/publicar-apk.sh && git add descargas && git commit -m "APK nuevo"
 ```
 
-Cada push a `main` despliega la web en GitHub Pages y recompila `js/compat/` si hace falta.
+Cada push a `main`:
+
+- despliega la web en GitHub Pages ([tapia.chiqui.ar](https://tapia.chiqui.ar));
+- recompila `js/compat/` si cambió `js/`;
+- si cambió la app (`android/` o los JSON de datos), compila el APK firmado y lo publica en
+  [Releases](https://github.com/ppaipi/trenesargentinos/releases). El link
+  `releases/latest/download/TrenAR.apk` siempre baja el último.
 
 ---
 

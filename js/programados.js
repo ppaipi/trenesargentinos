@@ -4,7 +4,7 @@
 // Mostramos cabeceras + frecuencia según horario oficial, siempre etiquetado
 // como programado (no en vivo), con link a la fuente.
 import { LINEAS_PROGRAMADAS } from "./programados-data.js";
-import { crearMapaLinea } from "../v4/mapa-tren.js";
+import { crearMapaLinea } from "./mapa-tren.js";
 
 const DIAS = [
   ["habiles", "Días hábiles"],

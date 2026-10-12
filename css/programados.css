@@ -1,5 +1,5 @@
 /* v5 — panel de líneas sin arribos en vivo (Urquiza, Belgrano Norte).
-   Reusa tokens de v4.css. Urquiza no tenía color propio: lo definimos acá. */
+   Reusa tokens de base.css. Urquiza no tenía color propio: lo definimos acá. */
 
 :root { --linea-urquiza: #e6007e; }
 

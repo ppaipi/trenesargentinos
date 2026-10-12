@@ -4,11 +4,13 @@ Sitio estático en GitHub Pages (deploy desde `main`, dominio `tapia.chiqui.ar` 
 Push: `git push git@github.com:ppaipi/trenesargentinos.git HEAD:main` (HTTPS no tiene credenciales).
 
 ## Estructura
-Todo vive en `index.html` (se terminaron las vN). `clasica.html` = la versión vieja.
-`v4.html`–`v6.html` solo redirigen a `/` (links compartidos y PWA instaladas); v1–v3 borrados.
-Código: `js/v4/` (app, buscador, avisos, mapa…), `js/v5/` (líneas programadas), `js/v6/marca.js`;
-CSS `css/v4*.css`, `css/v5-programados.css`, `css/v6-marca.css`, `css/patrocinio.css`.
-`descargas/TrenAR.apk` = APK publicado (botón "Descargar app Android" del pie, oculto en iOS); regenerar con `herramientas/publicar-apk.sh` al cambiar la app.
+Todo vive en `index.html`. Se borraron vN.html, clasica.html, gps.html y patrocinador.html;
+`404.html` redirige cualquier link viejo a `/`.
+Código plano en `js/` (app, buscador, avisos, mapa-tren, anden, programados, marca…);
+CSS `css/base.css`, `avisos-mapa.css`, `programados.css`, `marca.css`, `anden.css`, `patrocinio.css`.
+APK: `.github/workflows/apk.yml` lo compila firmado (secrets ANDROID_*) en cada push a main que toque
+`android/` o los JSON, y lo publica como Release; botón del pie (oculto en iOS) y README usan
+`releases/latest/download/TrenAR.apk`.
 Íconos web: `apple-touch-icon.png` (180, iOS) y `favicon.ico` en la raíz, desde el logo nuevo.
 `patrocinador.html` = página del meme (Sancord + Chiqui). `manifest.json` (start_url `/`).
 - Marca **TrenAR**: logo en `img/trenar-*.png`; meme con el botón del ojo o 5 toques al logo
@@ -31,7 +33,7 @@ Todo cambio va en la web y en la app Android a la vez.
   reciente elegido al agregarlo (`ConfigWidget`), cuenta regresiva en vivo (Android 7+), se
   redibuja cada minuto con la pantalla prendida, consulta la API si el dato tiene más de 5 min
   (`Api.proximos`, compartido con la app); tocarlo abre el viaje (link `?o=&d=`).
-- "Modo andén" (botón en cada tarjeta en vivo; `js/v4/anden.js` + `css/anden.css` / `ui/Anden.kt`): cuenta regresiva enorme, pantalla siempre encendida (Wake Lock / `keepScreenOn`); "Ya subí" (o solo al llegar el tren y alejarse el GPS) pasa a "a bordo": paradas hasta el destino con la próxima resaltada, posición por GPS sobre `recorridos.json` (`progresoViaje`, `ABordo.kt`) o estimada con horas de la API, aviso al llegar.
+- "Modo andén" (botón en cada tarjeta en vivo; `js/anden.js` + `css/anden.css` / `ui/Anden.kt`): cuenta regresiva enorme, pantalla siempre encendida (Wake Lock / `keepScreenOn`); "Ya subí" (o solo al llegar el tren y alejarse el GPS) pasa a "a bordo": paradas hasta el destino con la próxima resaltada, posición por GPS sobre `recorridos.json` (`progresoViaje`, `ABordo.kt`) o estimada con horas de la API, aviso al llegar.
 
 ## Datos
 - API: `api-servicios.sofse.gob.ar/v1` (token en `js/vN/api.js`).
@@ -44,16 +46,16 @@ Todo cambio va en la web y en la app Android a la vez.
   Dijkstra por cada estación (orden por distancia sobre la vía desde una punta), vías de la
   propia línea preferidas, sin lazos ida-y-vuelta. TdlC (`light_rail`) y Apeadero Km 12 (tramo
   `railway=razed` en Budge) rehechos con `herramientas/recorrido.py`. Al cambiarlo,
-  subir `recorridos.json?v=N` en `js/v4/mapa-tren.js`.
+  subir `recorridos.json?v=N` en `js/mapa-tren.js`.
 - Programados (Urquiza, Belgrano Norte): estaciones en orden con coords de nodos OSM dentro
-  de `js/v5/programados-data.js` y `datos/Programados.kt` (`estaciones`, `recorrido`); no
+  de `js/programados-data.js` y `datos/Programados.kt` (`estaciones`, `recorrido`); no
   tienen id SOFSE ni van en `estaciones-coords.json`. Polilíneas `Urquiza|||Urquiza` y
   `Belgrano Norte|||Belgrano Norte` hechas con `recorrido.py` pasando un coords.json temporal
   (ids 1..N) como 6.º argumento. Mapa: `crearMapaLinea` (web) / `MapaLinea` (app).
 - Mapa base: Argenmap (IGN, TMS) con respaldo CARTO.
 
 ## Tests y CI
-- Tests: `npm test` (Node, `tests/`, lógica pura en `js/v4/logica.js`) y
+- Tests: `npm test` (Node, `tests/`, lógica pura en `js/logica.js`) y
   `cd android && JAVA_HOME=~/Android/jdk ./gradlew :app:testDebugUnitTest` (`LogicaTest.kt`).
 - `.github/workflows/compatible.yml`: en cada push a main corre los tests y
   `compatible.sh`, y commitea `js/compat/` si cambió.
