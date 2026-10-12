@@ -1,0 +1,97 @@
+# Compila la app Android firmada en cada push a main que toque la app (o los
+# JSON que se copian a sus assets) y la publica como Release "TrenAR vX.Y.N".
+# El link fijo .../releases/latest/download/TrenAR.apk siempre baja la última
+# (lo usan el botón del pie de la web y el README).
+#
+# Secrets necesarios (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64  base64 -w0 ~/Android/trenes-subida.jks
+#   ANDROID_STORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#     (los valores de ~/Android/trenes-firma.properties)
+name: APK Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'estaciones.json'
+      - 'estaciones-coords.json'
+      - 'recorridos.json'
+      - '.github/workflows/apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    environment:
+      name: apk-android
+      url: https://github.com/${{ github.repository }}/releases/latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # versionCode = git rev-list --count HEAD
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Clave de firma
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE" ]; then
+            echo "::error::Falta el secret ANDROID_KEYSTORE_BASE64 (ver cabecera de apk.yml)"
+            exit 1
+          fi
+          mkdir -p ~/Android
+          echo "$KEYSTORE" | base64 -d > ~/Android/trenes-subida.jks
+          cat > ~/Android/trenes-firma.properties <<EOF
+          storeFile=$HOME/Android/trenes-subida.jks
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Tests
+        working-directory: android
+        run: ./gradlew :app:testDebugUnitTest
+
+      - name: Compilar
+        working-directory: android
+        run: |
+          ./gradlew assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk ../TrenAR.apk
+
+      - name: Versión
+        id: version
+        run: |
+          nombre=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' android/app/build.gradle.kts)
+          echo "tag=v${nombre}.$(git rev-list --count HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Publicar Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: TrenAR ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          files: TrenAR.apk
+          body: |
+            **[Descargar TrenAR.apk](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/TrenAR.apk)** · Android 6 o superior.
+
+            Instalalo encima de la versión anterior: tus favoritos quedan.
+
+            Cambio: ${{ github.event.head_commit.message || 'compilación manual' }}
