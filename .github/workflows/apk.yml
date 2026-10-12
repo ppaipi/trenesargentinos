@@ -3,7 +3,7 @@
 # El link fijo .../releases/latest/download/TrenAR.apk siempre baja la última
 # (lo usan el botón del pie de la web y el README).
 #
-# Secrets necesarios (Settings > Secrets and variables > Actions):
+# Secrets necesarios (Settings > Secrets and variables > Actions; cargados oct 2026):
 #   ANDROID_KEYSTORE_BASE64  base64 -w0 ~/Android/trenes-subida.jks
 #   ANDROID_STORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
 #     (los valores de ~/Android/trenes-firma.properties)
