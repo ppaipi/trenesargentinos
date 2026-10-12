@@ -119,8 +119,10 @@ class LogicaTest {
     fun widget_proximoTick() {
         fun tren(seg: Double) = Tren("c", "r", "o", "d", false, en(seg), null, false, null, null, null, null, null, null, null)
         assertEquals(t0 + 60000, proximoTick(emptyList(), t0))
-        assertEquals(en(35.0), proximoTick(listOf(tren(30.0), tren(600.0)), t0))
-        assertEquals(t0 + 15000, proximoTick(listOf(tren(1.0)), t0))
+        assertEquals(t0 + 17142, proximoTick(listOf(tren(30.0), tren(600.0)), t0)) // 30 s / 1.75
+        assertEquals(t0 + 60000, proximoTick(listOf(tren(200.0)), t0))
+        assertEquals(en(5.0), proximoTick(listOf(tren(-10.0), tren(5.0)), t0)) // el que ya salió no cuenta
+        assertEquals(t0 + 200, proximoTick(listOf(tren(0.1)), t0))
     }
 
     @Test

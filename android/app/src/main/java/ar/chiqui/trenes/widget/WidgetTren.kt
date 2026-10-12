@@ -58,10 +58,20 @@ fun siguienteFavorito(favs: List<Viaje>, actual: Viaje?): Viaje? {
     return sig.takeIf { i < 0 || favs.size > 1 }
 }
 
-/** Cuándo volver a dibujar: al minuto, o apenas sale el próximo tren (nunca antes de 15 s). */
+/**
+ * Cuándo volver a dibujar. Tiene que llegar antes de que salga el tren: la cuenta regresiva
+ * del launcher sigue en negativo hasta que se redibuja. set() puede atrasarse hasta un 75 %
+ * del plazo (salvo plazos de menos de 10 s), así que se apunta a falta/1.75 y se repite
+ * hasta caer exacto en la salida. Sin trenes cerca, una vez por minuto.
+ */
 fun proximoTick(trenes: List<Tren>, ahora: Long): Long {
-    val sale = trenes.map { it.referencia + 5000 }.filter { it > ahora }.minOrNull() ?: Long.MAX_VALUE
-    return minOf(ahora + 60000, sale).coerceAtLeast(ahora + 15000)
+    val falta = trenes.map { it.referencia - ahora }.filter { it > 0 }.minOrNull()
+    val hasta = when {
+        falta == null -> 60000L
+        falta <= 10000 -> falta
+        else -> (falta / 1.75).toLong()
+    }
+    return ahora + minOf(60000L, hasta).coerceAtLeast(200)
 }
 
 /**
