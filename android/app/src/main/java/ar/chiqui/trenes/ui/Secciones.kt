@@ -93,13 +93,21 @@ fun PanelAvisos(grupos: List<GrupoAvisos>, lineaPrimero: String?, onCerrar: () -
     }
 }
 
+/** Versión como el tag de la Release: "v1.0.123" (versionName + versionCode). */
+fun versionApp(ctx: android.content.Context): String = runCatching {
+    val info = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+    @Suppress("DEPRECATION")
+    val codigo = if (android.os.Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+    "v${info.versionName}.$codigo"
+}.getOrDefault("")
+
 /** "Acerca de": qué es TrenAR y de dónde salen los datos. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PanelAcerca(onCerrar: () -> Unit) {
     val ctx = LocalContext.current
     val cs = MaterialTheme.colorScheme
-    val version = remember { runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: "" }
+    val version = remember { versionApp(ctx) }
     ModalBottomSheet(onDismissRequest = onCerrar) {
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp).navigationBarsPadding(),
@@ -125,7 +133,7 @@ fun PanelAcerca(onCerrar: () -> Unit) {
                 color = cs.primary,
                 fontWeight = FontWeight.SemiBold,
             )
-            Text("Versión $version", style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant)
+            Text("Versión ${version.removePrefix("v")}", style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant)
             Spacer(Modifier.height(8.dp))
         }
     }

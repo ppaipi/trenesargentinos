@@ -264,6 +264,10 @@ private fun Pantalla(vm: AppVM) {
                     Spacer(Modifier.height(8.dp))
                 }
                 Text("Datos de Trenes Argentinos. App no oficial.", fontSize = 13.sp, color = sobreFondoSuave(vm.oscuro))
+                val version = remember { versionApp(ctx) }
+                if (version.isNotEmpty()) {
+                    Text("TrenAR $version", fontSize = 11.sp, color = sobreFondoSuave(vm.oscuro).copy(alpha = 0.7f))
+                }
             }
         }
     }
