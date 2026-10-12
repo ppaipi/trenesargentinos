@@ -99,12 +99,31 @@ export function iniciarPWA(contenedor) {
     navigator.serviceWorker.register("/sw.js").catch((e) => console.error("Service worker:", e));
   }
 
+  const ua = navigator.userAgent;
+  // iPadOS se presenta como Mac: lo delata la pantalla táctil.
+  const esIOS = /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const instalada = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+
+  const acciones = document.createElement("div");
+  acciones.className = "pie-descargas";
+  contenedor.appendChild(acciones);
+
+  // APK de Android: se publica en el mismo sitio (herramientas/publicar-apk.sh).
+  if (!esIOS && !instalada) {
+    const apk = document.createElement("a");
+    apk.className = "boton-secundario boton-descarga";
+    apk.href = "descargas/TrenAR.apk";
+    apk.setAttribute("download", "TrenAR.apk");
+    apk.textContent = "Descargar app Android (APK)";
+    acciones.appendChild(apk);
+  }
+
   let eventoInstalar = null;
   const boton = document.createElement("button");
   boton.type = "button";
   boton.className = "boton-secundario ocultar";
-  boton.textContent = "Instalar app";
-  contenedor.appendChild(boton);
+  boton.textContent = esIOS ? "Agregar a la pantalla de inicio" : "Instalar como app web";
+  acciones.appendChild(boton);
 
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
@@ -112,9 +131,7 @@ export function iniciarPWA(contenedor) {
     boton.classList.remove("ocultar");
   });
 
-  // iOS no dispara beforeinstallprompt: mostramos como hacerlo a mano.
-  const esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const instalada = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  // iOS no dispara beforeinstallprompt: se instala a mano desde Compartir.
   if (esIOS && !instalada) boton.classList.remove("ocultar");
 
   boton.addEventListener("click", async () => {
@@ -124,11 +141,48 @@ export function iniciarPWA(contenedor) {
       eventoInstalar = null;
       boton.classList.add("ocultar");
     } else {
-      toast("En Safari: tocá Compartir y después “Agregar a inicio”", 5000);
+      mostrarGuiaIOS(ua);
     }
   });
 
   window.addEventListener("appinstalled", () => boton.classList.add("ocultar"));
+}
+
+const ICONO_COMPARTIR = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>';
+
+// Pasos según el navegador: Safari, Chrome/Edge/Firefox de iOS, o un navegador
+// embebido (Instagram, WhatsApp, Facebook...) que no permite agregar a inicio.
+function mostrarGuiaIOS(ua) {
+  let panel = document.getElementById("panelInstalar");
+  if (!panel) {
+    const embebido = /FBAN|FBAV|Instagram|Line\/|WhatsApp|GSA\//.test(ua);
+    const otro = /CriOS|EdgiOS|FxiOS|OPiOS/.test(ua);
+    const pasos = embebido
+      ? ["Tocá el menú (<b>···</b>) y elegí <b>Abrir en Safari</b>.", "En Safari, seguí estos mismos pasos de nuevo."]
+      : [
+          otro
+            ? `Tocá el botón <b>Compartir</b> ${ICONO_COMPARTIR} en la barra de direcciones.`
+            : `Tocá <b>Compartir</b> ${ICONO_COMPARTIR} abajo (en iOS 26, primero el botón <b>···</b>).`,
+          "Deslizá y elegí <b>Agregar a inicio</b> (o <b>Agregar a pantalla de inicio</b>).",
+          "Dejá activado <b>Abrir como app web</b> y tocá <b>Agregar</b>.",
+        ];
+    panel = document.createElement("div");
+    panel.id = "panelInstalar";
+    panel.className = "panel-avisos";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-label", "Agregar TrenAR a la pantalla de inicio");
+    panel.innerHTML = `<div class="panel-avisos-caja guia-instalar">
+      <div class="panel-avisos-cabecera"><h2>Agregar a la pantalla de inicio</h2>
+      <button class="boton-icono" type="button" aria-label="Cerrar">✕</button></div>
+      <ol>${pasos.map((p) => `<li>${p}</li>`).join("")}</ol>
+      <p class="linea-nombre">Queda con el ícono de TrenAR y abre a pantalla completa, sin la barra del navegador.</p>
+    </div>`;
+    const cerrar = () => panel.classList.add("ocultar");
+    panel.querySelector("button").addEventListener("click", cerrar);
+    panel.addEventListener("click", (e) => { if (e.target === panel) cerrar(); });
+    document.body.appendChild(panel);
+  }
+  panel.classList.remove("ocultar");
 }
 
 /* ---------- Notificaciones ---------- */
@@ -147,7 +201,7 @@ export async function notificar(titulo, cuerpo, { tag = "trenes-aviso" } = {}) {
     toast(`${titulo}: ${cuerpo}`, 6000);
     return;
   }
-  const opciones = { body: cuerpo, icon: "icon-192.png", badge: "icon-192.png", tag, renotify: true };
+  const opciones = { body: cuerpo, icon: "img/trenar-192.png", badge: "img/trenar-192.png", tag, renotify: true };
   try {
     // En Android sólo funciona via service worker.
     const reg = await navigator.serviceWorker?.getRegistration();

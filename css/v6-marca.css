@@ -34,3 +34,10 @@
 .cabecera-fila .boton-meme { right: auto; left: 46px; }
 .cabecera-fila .boton-meme[aria-pressed="true"] { background: #ffd23f; color: #0a7d3b; }
 h1.marca { padding: 0 90px; }
+
+/* Pie: descarga del APK e instalación como app web */
+.pie-descargas { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 10px; }
+.pie-descargas .boton-secundario { margin-top: 0; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.guia-instalar ol { margin: 0 0 12px; padding-left: 22px; line-height: 1.5; }
+.guia-instalar li { margin-bottom: 8px; }
+.guia-instalar svg { vertical-align: -3px; }

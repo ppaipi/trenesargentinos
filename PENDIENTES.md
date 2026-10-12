@@ -8,6 +8,8 @@ Todo vive en `index.html` (se terminaron las vN). `clasica.html` = la versión v
 `v4.html`–`v6.html` solo redirigen a `/` (links compartidos y PWA instaladas); v1–v3 borrados.
 Código: `js/v4/` (app, buscador, avisos, mapa…), `js/v5/` (líneas programadas), `js/v6/marca.js`;
 CSS `css/v4*.css`, `css/v5-programados.css`, `css/v6-marca.css`, `css/patrocinio.css`.
+`descargas/TrenAR.apk` = APK publicado (botón "Descargar app Android" del pie, oculto en iOS); regenerar con `herramientas/publicar-apk.sh` al cambiar la app.
+Íconos web: `apple-touch-icon.png` (180, iOS) y `favicon.ico` en la raíz, desde el logo nuevo.
 `patrocinador.html` = página del meme (Sancord + Chiqui). `manifest.json` (start_url `/`).
 - Marca **TrenAR**: logo en `img/trenar-*.png`; meme con el botón del ojo o 5 toques al logo
   (localStorage `trenAR.meme`).

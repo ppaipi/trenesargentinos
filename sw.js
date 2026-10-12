@@ -1,4 +1,4 @@
-const CACHE_NAME = "trenes-arg-v4";
+const CACHE_NAME = "trenes-arg-v5";
 // Lo que usa index.html para abrir sin conexión (las vistas con ?v= se
 // sirven igual: el respaldo busca con ignoreSearch).
 const ARCHIVOS_PRECACHE = [
@@ -34,7 +34,8 @@ const ARCHIVOS_PRECACHE = [
   "/img/trenar-32.png",
   "/img/trenar-192.png",
   "/img/trenar-512.png",
-  "/icon-192.png",
+  "/apple-touch-icon.png",
+  "/favicon.ico",
   "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
   "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
 ];
