@@ -1,5 +1,6 @@
 package ar.chiqui.trenes
 
+import ar.chiqui.trenes.datos.Actualizacion
 import ar.chiqui.trenes.datos.CambioTren
 import ar.chiqui.trenes.datos.Estacion
 import ar.chiqui.trenes.datos.detectarCambioTren
@@ -116,5 +117,12 @@ class LogicaTest {
         assertEquals(t0 + 60000, proximoTick(emptyList(), t0))
         assertEquals(en(35.0), proximoTick(listOf(tren(30.0), tren(600.0)), t0))
         assertEquals(t0 + 15000, proximoTick(listOf(tren(1.0)), t0))
+    }
+
+    @Test
+    fun actualizacion_numero() {
+        assertEquals(204, Actualizacion.numero("v1.0.204"))
+        assertEquals(7, Actualizacion.numero("v2.1.7"))
+        assertNull(Actualizacion.numero("sin-numero"))
     }
 }

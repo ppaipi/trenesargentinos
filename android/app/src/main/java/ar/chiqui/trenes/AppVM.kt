@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import ar.chiqui.trenes.datos.Actualizacion
 import ar.chiqui.trenes.datos.Almacen
 import ar.chiqui.trenes.datos.Api
 import ar.chiqui.trenes.datos.Aviso
@@ -55,6 +56,8 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     var listo by mutableStateOf(false); private set
     var conexion by mutableStateOf(Conexion.CONECTANDO); private set
     var online by mutableStateOf(true); private set
+    /** Tag de una Release más nueva que la instalada (null = al día o descartado). */
+    var actualizacion by mutableStateOf<String?>(null)
     var oscuro by mutableStateOf(almacen.temaOscuro); private set
     var meme by mutableStateOf(almacen.meme); private set
     var intersticial by mutableStateOf<Int?>(null) // segundos del anuncio a pantalla completa
@@ -147,6 +150,16 @@ class AppVM(app: Application) : AndroidViewModel(app) {
             refrescarViajes()
             if (conectar()) arrancar()
         }
+        viewModelScope.launch { buscarActualizacion() }
+    }
+
+    private suspend fun buscarActualizacion() {
+        val tag = Actualizacion.ultima() ?: return
+        val nueva = Actualizacion.numero(tag) ?: return
+        val info = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+        @Suppress("DEPRECATION")
+        val instalada = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+        if (nueva > instalada) actualizacion = tag
     }
 
     override fun onCleared() {

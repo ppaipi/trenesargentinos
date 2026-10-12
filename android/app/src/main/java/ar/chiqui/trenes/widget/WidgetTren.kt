@@ -56,6 +56,22 @@ class WidgetTren : AppWidgetProvider() {
         when (intent.action) {
             ACCION_REFRESCAR -> trabajar(ctx, red = true)
             ACCION_TICK -> trabajar(ctx, red = false)
+            ACCION_INVERTIR -> {
+                // Ida <-> vuelta: el mismo widget pasa a mostrar el viaje opuesto.
+                val id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
+                ConfigWidget.viaje(ctx, id)?.let { ConfigWidget.guardar(ctx, id, Viaje(it.d, it.o)) }
+                trabajar(ctx, red = false)
+            }
+            ACCION_PROXIMO -> {
+                // Siguiente favorito (o reciente), en ronda; el viaje invertido cuenta como el mismo.
+                val id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
+                Estaciones.cargar(ctx)
+                val lista = ConfigWidget.opciones(ctx)
+                val actual = ConfigWidget.viaje(ctx, id)
+                val i = lista.indexOfFirst { actual != null && setOf(it.o, it.d) == setOf(actual.o, actual.d) }
+                lista.getOrNull((i + 1) % lista.size.coerceAtLeast(1))?.let { ConfigWidget.guardar(ctx, id, it) }
+                trabajar(ctx, red = false)
+            }
             else -> super.onReceive(ctx, intent)
         }
     }
@@ -87,6 +103,8 @@ class WidgetTren : AppWidgetProvider() {
     companion object {
         const val ACCION_REFRESCAR = "ar.chiqui.trenes.widget.REFRESCAR"
         private const val ACCION_TICK = "ar.chiqui.trenes.widget.TICK"
+        private const val ACCION_INVERTIR = "ar.chiqui.trenes.widget.INVERTIR"
+        private const val ACCION_PROXIMO = "ar.chiqui.trenes.widget.PROXIMO"
         private const val VIEJO_MS = 5 * 60000L
 
         private fun ids(ctx: Context) =
@@ -151,17 +169,32 @@ class WidgetTren : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        private fun sinConfigurar(ctx: Context, id: Int) = RemoteViews(ctx.packageName, R.layout.widget_tren).apply {
-            setTextViewText(R.id.w_trayecto, "TrenAR")
-            setTextViewText(R.id.w_hora, "--:--")
-            setViewVisibility(R.id.w_cuenta, View.GONE)
-            setViewVisibility(R.id.w_faltan, View.GONE)
-            setTextViewText(R.id.w_siguiente, "Tocá para elegir un favorito")
-            setTextViewText(R.id.w_estado, "")
+        private fun accionWidget(ctx: Context, accion: String, codigo: Int, id: Int) = PendingIntent.getBroadcast(
+            ctx, codigo,
+            Intent(ctx, WidgetTren::class.java).setAction(accion).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        /** Abre el selector de viaje para este widget (tocar el trayecto). */
+        private fun elegirViaje(ctx: Context, id: Int): PendingIntent {
             val conf = Intent(ctx, ConfigWidget::class.java)
                 .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
                 .setData(Uri.parse("trenar://widget/$id"))
-            setOnClickPendingIntent(R.id.w_raiz, PendingIntent.getActivity(ctx, id, conf, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            return PendingIntent.getActivity(ctx, id, conf, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
+
+        private fun sinConfigurar(ctx: Context, id: Int) = RemoteViews(ctx.packageName, R.layout.widget_tren).apply {
+            setTextViewText(R.id.w_trayecto, "TrenAR")
+            setTextViewText(R.id.w_faltan, "Elegí un viaje")
+            setViewVisibility(R.id.w_faltan, View.VISIBLE)
+            setViewVisibility(R.id.w_cuenta, View.GONE)
+            setTextViewText(R.id.w_hora, "Tu próximo tren, en vivo")
+            setTextViewText(R.id.w_siguiente, "Tocá para elegir un favorito")
+            setTextViewText(R.id.w_estado, "")
+            setViewVisibility(R.id.w_invertir, View.GONE)
+            setViewVisibility(R.id.w_proximo, View.GONE)
+            setOnClickPendingIntent(R.id.w_raiz, elegirViaje(ctx, id))
             setOnClickPendingIntent(R.id.w_refrescar, refrescar(ctx))
         }
 
@@ -173,6 +206,9 @@ class WidgetTren : AppWidgetProvider() {
             val d = Estaciones.porId(v.d)?.nombre ?: "?"
             setTextViewText(R.id.w_trayecto, "$o → $d")
             setOnClickPendingIntent(R.id.w_raiz, abrirApp(ctx, id, v))
+            setOnClickPendingIntent(R.id.w_trayecto, elegirViaje(ctx, id))
+            setOnClickPendingIntent(R.id.w_invertir, accionWidget(ctx, ACCION_INVERTIR, 1_000_000 + id, id))
+            setOnClickPendingIntent(R.id.w_proximo, accionWidget(ctx, ACCION_PROXIMO, 2_000_000 + id, id))
             setOnClickPendingIntent(R.id.w_refrescar, refrescar(ctx))
 
             val ahora = System.currentTimeMillis()
@@ -180,12 +216,13 @@ class WidgetTren : AppWidgetProvider() {
             val primero = trenes.getOrNull(0)
             val segundo = trenes.getOrNull(1)
             if (primero == null) {
-                setTextViewText(R.id.w_hora, "--:--")
+                setTextViewText(R.id.w_faltan, "--:--")
+                setViewVisibility(R.id.w_faltan, View.VISIBLE)
                 setViewVisibility(R.id.w_cuenta, View.GONE)
-                setViewVisibility(R.id.w_faltan, View.GONE)
-                setTextViewText(R.id.w_siguiente, if (cargando) "Buscando trenes…" else "Sin próximos trenes")
+                setTextViewText(R.id.w_hora, if (cargando) "Buscando trenes…" else "Sin próximos trenes")
+                setTextViewText(R.id.w_siguiente, "Tocá para ver el viaje")
             } else {
-                setTextViewText(R.id.w_hora, hora(primero.referencia))
+                setTextViewText(R.id.w_hora, "Sale a las ${hora(primero.referencia)}" + (primero.anden?.let { " · andén $it" } ?: ""))
                 val falta = primero.referencia - ahora
                 if (Build.VERSION.SDK_INT >= 24 && falta > 0 && falta < 3600000) {
                     // Cuenta regresiva en vivo con segundos, la corre el launcher.
@@ -200,7 +237,7 @@ class WidgetTren : AppWidgetProvider() {
                 }
                 setTextViewText(
                     R.id.w_siguiente,
-                    segundo?.let { "Siguiente ${hora(it.referencia)} · ${faltanTexto(it.referencia, ahora)}" } ?: "Sin otro tren por ahora",
+                    segundo?.let { "Después: ${hora(it.referencia)} · ${faltanTexto(it.referencia, ahora)}" } ?: "Sin otro tren por ahora",
                 )
             }
             setTextViewText(

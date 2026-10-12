@@ -1,6 +1,11 @@
 package ar.chiqui.trenes.ui
 
 import android.Manifest
+import ar.chiqui.trenes.datos.Actualizacion
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material3.TextButton
+import android.net.Uri
+import android.content.Intent
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -155,6 +160,7 @@ private fun Pantalla(vm: AppVM) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 if (vm.meme) BannerSancord()
+                vm.actualizacion?.let { tag -> AvisoActualizacion(tag, onCerrar = { vm.actualizacion = null }) }
                 if (!vm.online) {
                     Text(
                         "Sin conexión. Los horarios se actualizan cuando vuelva internet.",
@@ -300,4 +306,24 @@ private fun Tarjetita(contenido: @Composable RowScope.() -> Unit) {
         horizontalArrangement = Arrangement.Center,
         content = contenido,
     )
+}
+
+/** Hay un APK más nuevo en Releases: lo baja el navegador y Android pregunta si instalarlo. */
+@Composable
+private fun AvisoActualizacion(tag: String, onCerrar: () -> Unit) {
+    val ctx = LocalContext.current
+    Row(
+        Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(12.dp)).clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface).padding(start = 16.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Hay una versión nueva", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            Text("TrenAR $tag · tus favoritos quedan", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        BotonSecundario("Actualizar", activo = true) {
+            runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(Actualizacion.DESCARGA))) }
+        }
+        TextButton(onCerrar) { Text("✕", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    }
 }

@@ -44,10 +44,8 @@ class ConfigWidget : ComponentActivity() {
         if (id == AppWidgetManager.INVALID_APPWIDGET_ID) return finish()
 
         Estaciones.cargar(this)
-        val almacen = Almacen(this)
-        val favs = almacen.favoritos()
-        val opciones = (favs + almacen.recientes().filterNot { r -> favs.any { it.o == r.o && it.d == r.d } })
-            .filter { Estaciones.porId(it.o) != null && Estaciones.porId(it.d) != null }
+        val favs = Almacen(this).favoritos()
+        val opciones = opciones(this)
 
         setContent {
             MaterialTheme {
@@ -103,6 +101,14 @@ class ConfigWidget : ComponentActivity() {
             val o = partes.getOrNull(0)?.toIntOrNull() ?: return null
             val d = partes.getOrNull(1)?.toIntOrNull() ?: return null
             return Viaje(o, d)
+        }
+
+        /** Favoritos y después recientes (sin repetir), con estaciones conocidas. */
+        fun opciones(ctx: Context): List<Viaje> {
+            val almacen = Almacen(ctx)
+            val favs = almacen.favoritos()
+            return (favs + almacen.recientes().filterNot { r -> favs.any { it.o == r.o && it.d == r.d } })
+                .filter { Estaciones.porId(it.o) != null && Estaciones.porId(it.d) != null }
         }
 
         fun borrar(ctx: Context, id: Int) = prefs(ctx).edit().remove("w$id").apply()
