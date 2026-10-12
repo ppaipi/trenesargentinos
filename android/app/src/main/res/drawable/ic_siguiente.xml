@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Chevron: pasar al siguiente viaje guardado. -->
+<!-- Estrella con flecha: pasar al siguiente viaje favorito. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
     <path android:fillColor="#FF0A2540"
-        android:pathData="M8.59,16.59L13.17,12 8.59,7.41 10,6l6,6 -6,6z" />
+        android:pathData="M9,2l2.1,4.6 5,0.5 -3.8,3.4 1.1,4.9L9,12.9 4.6,15.4 5.7,10.5 1.9,7.1l5,-0.5z" />
+    <path android:fillColor="#FF0A2540"
+        android:pathData="M15.6,21.6L19.2,18 15.6,14.4 17,13l5,5 -5,5z" />
 </vector>

@@ -11,6 +11,8 @@ import ar.chiqui.trenes.datos.Tren
 import ar.chiqui.trenes.ui.cuentaRegresiva
 import ar.chiqui.trenes.widget.faltanTexto
 import ar.chiqui.trenes.widget.proximoTick
+import ar.chiqui.trenes.widget.siguienteFavorito
+import ar.chiqui.trenes.datos.Viaje
 import ar.chiqui.trenes.widget.Tamano
 import ar.chiqui.trenes.widget.tamano
 import org.junit.Assert.assertEquals
@@ -143,5 +145,16 @@ class LogicaTest {
         assertEquals(Tamano.GRANDE, tamano(180))
         assertEquals(Tamano.MEDIANO, tamano(100))
         assertEquals(Tamano.CHICO, tamano(60))
+        assertEquals(Tamano.MINI, tamano(45))
+    }
+
+    @Test
+    fun widget_siguienteFavorito() {
+        val a = Viaje(1, 2); val b = Viaje(3, 4)
+        assertEquals(b, siguienteFavorito(listOf(a, b), a))
+        assertEquals(a, siguienteFavorito(listOf(a, b), Viaje(4, 3))) // invertido cuenta como el mismo
+        assertEquals(a, siguienteFavorito(listOf(a), Viaje(9, 8))) // no es favorito: va al primero
+        assertEquals(null, siguienteFavorito(listOf(a), a)) // único favorito: no hay a cuál pasar
+        assertEquals(null, siguienteFavorito(emptyList(), a))
     }
 }

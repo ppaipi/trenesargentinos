@@ -111,6 +111,10 @@ class ConfigWidget : ComponentActivity() {
                 .filter { Estaciones.porId(it.o) != null && Estaciones.porId(it.d) != null }
         }
 
+        /** Solo los favoritos válidos: el botón de estrella del widget rota entre estos. */
+        fun favoritos(ctx: Context): List<Viaje> =
+            Almacen(ctx).favoritos().filter { Estaciones.porId(it.o) != null && Estaciones.porId(it.d) != null }
+
         fun borrar(ctx: Context, id: Int) = prefs(ctx).edit().remove("w$id").apply()
     }
 }

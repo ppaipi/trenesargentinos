@@ -38,13 +38,24 @@ fun faltanTexto(referencia: Long, ahora: Long): String? {
     }
 }
 
-enum class Tamano { CHICO, MEDIANO, GRANDE }
+enum class Tamano { MINI, CHICO, MEDIANO, GRANDE }
 
-/** Qué entra según el alto en dp: GRANDE todo, MEDIANO sin pastilla ni estado, CHICO una fila. */
+/**
+ * Qué entra según el alto en dp, dejando a la cuenta regresiva (autoajustable) al menos ~28 dp:
+ * GRANDE todo, MEDIANO sin pastilla ni estado, CHICO sin cabecera, MINI solo la cuenta.
+ */
 fun tamano(altoDp: Int): Tamano = when {
-    altoDp <= 0 || altoDp >= 120 -> Tamano.GRANDE
-    altoDp >= 85 -> Tamano.MEDIANO
-    else -> Tamano.CHICO
+    altoDp <= 0 || altoDp >= 140 -> Tamano.GRANDE
+    altoDp >= 100 -> Tamano.MEDIANO
+    altoDp >= 56 -> Tamano.CHICO
+    else -> Tamano.MINI
+}
+
+/** Siguiente favorito en ronda (el viaje invertido cuenta como el mismo); null si no hay a cuál pasar. */
+fun siguienteFavorito(favs: List<Viaje>, actual: Viaje?): Viaje? {
+    val i = favs.indexOfFirst { actual != null && setOf(it.o, it.d) == setOf(actual.o, actual.d) }
+    val sig = favs.getOrNull((i + 1) % favs.size.coerceAtLeast(1)) ?: return null
+    return sig.takeIf { i < 0 || favs.size > 1 }
 }
 
 /** Cuándo volver a dibujar: al minuto, o apenas sale el próximo tren (nunca antes de 15 s). */
@@ -78,13 +89,11 @@ class WidgetTren : AppWidgetProvider() {
                 trabajar(ctx, red = false)
             }
             ACCION_PROXIMO -> {
-                // Siguiente favorito (o reciente), en ronda; el viaje invertido cuenta como el mismo.
+                // Siguiente favorito, en ronda (solo favoritos, no recientes).
                 val id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
                 Estaciones.cargar(ctx)
-                val lista = ConfigWidget.opciones(ctx)
-                val actual = ConfigWidget.viaje(ctx, id)
-                val i = lista.indexOfFirst { actual != null && setOf(it.o, it.d) == setOf(actual.o, actual.d) }
-                lista.getOrNull((i + 1) % lista.size.coerceAtLeast(1))?.let { ConfigWidget.guardar(ctx, id, it) }
+                siguienteFavorito(ConfigWidget.favoritos(ctx), ConfigWidget.viaje(ctx, id))
+                    ?.let { ConfigWidget.guardar(ctx, id, it) }
                 trabajar(ctx, red = false)
             }
             else -> super.onReceive(ctx, intent)
@@ -153,7 +162,8 @@ class WidgetTren : AppWidgetProvider() {
                 var guardado = almacen.leerResultado(v)
                 grupo.forEach { mgr.updateAppWidget(it, vista(ctx, it, v, guardado, cargando = red)) }
                 var error = false
-                if (red || guardado == null || ahora0 - guardado.first > VIEJO_MS || guardado.second.size < 2) {
+                // Sin "pocos trenes => volver a pedir": de noche la API devuelve 0-1 y eso la consultaba cada minuto.
+                if (red || guardado == null || ahora0 - guardado.first > VIEJO_MS) {
                     val o = Estaciones.porId(v.o)
                     val d = Estaciones.porId(v.d)
                     if (o != null && d != null) {
@@ -251,7 +261,7 @@ class WidgetTren : AppWidgetProvider() {
                     when (t) {
                         Tamano.GRANDE -> "Sale a las $sale" + (primero.anden?.let { " · andén $it" } ?: "")
                         Tamano.MEDIANO -> "Sale $sale" + (segundo?.let { " · después ${hora(it.referencia)}" } ?: "")
-                        Tamano.CHICO -> "$o → $d · $sale"
+                        Tamano.CHICO, Tamano.MINI -> "$o → $d · $sale"
                     },
                 )
                 val falta = primero.referencia - ahora
@@ -271,15 +281,23 @@ class WidgetTren : AppWidgetProvider() {
                     segundo?.let { "Después: ${hora(it.referencia)} · ${faltanTexto(it.referencia, ahora)}" } ?: "Sin otro tren por ahora",
                 )
             }
-            // Achicado: la cuenta regresiva manda; lo demás se esconde.
-            val chico = t == Tamano.CHICO
-            setViewVisibility(R.id.w_cabecera, if (chico) View.GONE else View.VISIBLE)
-            setViewVisibility(R.id.w_siguiente, if (t == Tamano.GRANDE) View.VISIBLE else View.GONE)
-            setViewVisibility(R.id.w_estado, if (t == Tamano.GRANDE) View.VISIBLE else View.GONE)
-            setTextViewTextSize(R.id.w_cuenta, TypedValue.COMPLEX_UNIT_SP, if (chico) 28f else 38f)
-            setTextViewTextSize(R.id.w_faltan, TypedValue.COMPLEX_UNIT_SP, if (chico) 24f else 30f)
-            val pad = (if (chico) 8 else 12) * ctx.resources.displayMetrics.density
-            setViewPadding(R.id.w_raiz, (16 * ctx.resources.displayMetrics.density).toInt(), pad.toInt(), (10 * ctx.resources.displayMetrics.density).toInt(), pad.toInt())
+            // Achicado: la cuenta regresiva manda (se autoajusta al lugar libre); lo demás se esconde.
+            val chico = t == Tamano.CHICO || t == Tamano.MINI
+            fun ver(visible: Boolean) = if (visible) View.VISIBLE else View.GONE
+            setViewVisibility(R.id.w_cabecera, ver(!chico))
+            setViewVisibility(R.id.w_hora, ver(t != Tamano.MINI))
+            setViewVisibility(R.id.w_siguiente, ver(t == Tamano.GRANDE))
+            setViewVisibility(R.id.w_estado, ver(t == Tamano.GRANDE))
+            val hayOtroFav = siguienteFavorito(ConfigWidget.favoritos(ctx), v) != null
+            setViewVisibility(R.id.w_proximo, ver(hayOtroFav))
+            if (Build.VERSION.SDK_INT < 26) {
+                // Sin autoajuste de texto: tamaños fijos por escalón.
+                setTextViewTextSize(R.id.w_cuenta, TypedValue.COMPLEX_UNIT_SP, if (chico) 24f else 34f)
+                setTextViewTextSize(R.id.w_faltan, TypedValue.COMPLEX_UNIT_SP, if (chico) 22f else 28f)
+            }
+            val dp = ctx.resources.displayMetrics.density
+            val pad = ((if (chico) 6 else 10) * dp).toInt()
+            setViewPadding(R.id.w_raiz, (16 * dp).toInt(), pad, (10 * dp).toInt(), pad)
             setTextViewText(
                 R.id.w_estado,
                 when {
