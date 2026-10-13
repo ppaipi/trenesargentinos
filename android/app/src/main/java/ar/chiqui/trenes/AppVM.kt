@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import ar.chiqui.trenes.datos.Actualizacion
 import ar.chiqui.trenes.datos.Almacen
 import ar.chiqui.trenes.datos.Api
+import ar.chiqui.trenes.datos.Instalador
 import ar.chiqui.trenes.datos.Aviso
 import ar.chiqui.trenes.datos.ErrorApi
 import ar.chiqui.trenes.datos.Estacion
@@ -154,11 +155,12 @@ class AppVM(app: Application) : AndroidViewModel(app) {
     }
 
     private suspend fun buscarActualizacion() {
-        val tag = Actualizacion.ultima() ?: return
-        val nueva = Actualizacion.numero(tag) ?: return
         val info = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
         @Suppress("DEPRECATION")
         val instalada = if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+        withContext(Dispatchers.IO) { Instalador.limpiar(ctx, instalada) }
+        val tag = Actualizacion.ultima() ?: return
+        val nueva = Actualizacion.numero(tag) ?: return
         if (nueva > instalada) actualizacion = tag
     }
 

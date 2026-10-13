@@ -20,6 +20,17 @@ import java.io.File
 object Instalador {
     private const val MIME = "application/vnd.android.package-archive"
 
+    /**
+     * Borra los APK ya instalados (versión <= la que corre): se llama al arrancar, así la
+     * actualización no deja el archivo ocupando lugar. Uno más nuevo, sin instalar, se deja.
+     */
+    fun limpiar(ctx: Context, instalada: Long) {
+        ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            ?.listFiles { f -> f.name.startsWith("TrenAR") && f.name.endsWith(".apk") }
+            ?.filter { f -> (Actualizacion.numero(f.name.removePrefix("TrenAR-").removeSuffix(".apk")) ?: 0) <= instalada }
+            ?.forEach { it.delete() }
+    }
+
     fun actualizar(ctx: Context, tag: String, onFin: (Boolean) -> Unit) {
         val app = ctx.applicationContext
         val carpeta = app.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
